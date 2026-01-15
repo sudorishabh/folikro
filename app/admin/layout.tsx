@@ -1,7 +1,9 @@
 import React from "react";
 
-const layout = () => {
-  return <div>layout</div>;
-};
-
-export default layout;
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
+}
