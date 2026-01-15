@@ -156,3 +156,61 @@ export const pageThemesTable = pgTable("page_themes", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const analyticsTable = pgTable("analytics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  pageId: uuid("page_id").references(() => pagesTable.id, {
+    onDelete: "cascade",
+  }),
+  widgetId: uuid("widget_id").references(() => widgetsTable.id, {
+    onDelete: "cascade",
+  }),
+  eventType: varchar({ length: 20 }).notNull(), // "view", "click"
+  referrer: text("referrer"),
+  country: varchar({ length: 2 }),
+  device: varchar({ length: 20 }), // "mobile", "desktop", "tablet"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const templatesTable = pgTable("templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => usersTable.id, {
+    onDelete: "set null",
+  }),
+  name: varchar({ length: 100 }).notNull(),
+  description: text("description"),
+  thumbnail: text("thumbnail"), // Preview image URL
+  layout: jsonb("layout"), // Saved widget positions & styles
+  theme: jsonb("theme"), // Saved theme settings
+  isPublic: boolean("is_public").default(false),
+  usageCount: integer("usage_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const subscriptionsTable = pgTable("subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" })
+    .unique(),
+  plan: varchar({ length: 20 }).notNull().default("free"), // "free", "pro", "enterprise"
+  status: varchar({ length: 20 }).notNull().default("active"), // "active", "cancelled", "past_due"
+  stripeCustomerId: varchar({ length: 100 }),
+  stripeSubscriptionId: varchar({ length: 100 }),
+  currentPeriodEnd: timestamp("current_period_end"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const oauthConnectionsTable = pgTable("oauth_connections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  provider: varchar({ length: 50 }).notNull(), // "github", "spotify", "twitter"
+  providerUserId: varchar({ length: 100 }).notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
