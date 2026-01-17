@@ -1,0 +1,28 @@
+/* Grid Dashboard Custom Styles */
+
+/* Placeholder where widget will drop - darker gray */
+.grid-stack > .grid-stack-placeholder > .placeholder-content {
+  background-color: #9ca3af !important;
+  border: 2px dashed #6b7280 !important;
+  border-radius: 8px;
+}
+
+/* Alternative placeholder styling */
+.grid-stack-placeholder > .placeholder-content {
+  background-color: #9ca3af !important;
+  border: 2px dashed #6b7280 !important;
+}
+
+/* Widget text color adjustment for white background */
+.grid-stack-item-content span {
+  color: #1f2937;
+}
+
+/* Button styling for white widgets */
+.grid-stack-item-content button {
+  color: #374151;
+}
+
+.grid-stack-item-content button:hover {
+  color: #111827;
+}

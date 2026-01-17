@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState, ChangeEvent } from "react";
 import { GridStack, GridStackNode } from "gridstack";
 import "gridstack/dist/gridstack.min.css";
+import "./grid-dashboard.css";
 import { Slider } from "@/components/ui/slider";
 import {
   Popover,
@@ -27,6 +28,7 @@ type Widget = {
   y: number;
   w: number;
   h: number;
+  title: string;
   background: BackgroundSettings;
 };
 
@@ -40,11 +42,42 @@ const defaultBackground: BackgroundSettings = {
 };
 
 const initialWidgets: Widget[] = [
-  { id: "a", x: 0, y: 0, w: 4, h: 2, background: { ...defaultBackground } },
-  { id: "b", x: 4, y: 0, w: 4, h: 3, background: { ...defaultBackground } },
-  { id: "c", x: 8, y: 0, w: 4, h: 3, background: { ...defaultBackground } },
-  { id: "d", x: 11, y: 0, w: 4, h: 3, background: { ...defaultBackground } },
-  { id: "4", x: 14, y: 0, w: 4, h: 3, background: { ...defaultBackground } },
+  {
+    id: "a",
+    x: 0,
+    y: 0,
+    w: 3,
+    h: 3,
+    title: "",
+    background: { ...defaultBackground },
+  },
+  {
+    id: "b",
+    x: 3,
+    y: 0,
+    w: 3,
+    h: 3,
+    title: "",
+    background: { ...defaultBackground },
+  },
+  {
+    id: "c",
+    x: 6,
+    y: 0,
+    w: 3,
+    h: 3,
+    title: "",
+    background: { ...defaultBackground },
+  },
+  {
+    id: "d",
+    x: 9,
+    y: 0,
+    w: 3,
+    h: 3,
+    title: "",
+    background: { ...defaultBackground },
+  },
 ];
 
 // Reusable Background Settings Panel Component
@@ -54,17 +87,35 @@ const BackgroundSettingsPanel: React.FC<{
   onReset: () => void;
   onImageUpload: (e: ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: () => void;
-  title: string;
+  panelTitle: string;
+  widgetTitle?: string;
+  onTitleChange?: (title: string) => void;
 }> = ({
   background,
   onUpdate,
   onReset,
   onImageUpload,
   onImageRemove,
-  title,
+  panelTitle,
+  widgetTitle,
+  onTitleChange,
 }) => (
   <div className='space-y-4'>
-    <h4 className='font-semibold text-white text-sm'>{title}</h4>
+    <h4 className='font-semibold text-white text-sm'>{panelTitle}</h4>
+
+    {/* Widget Title Input (only for widgets) */}
+    {onTitleChange !== undefined && (
+      <div className='space-y-2'>
+        <Label className='text-slate-300 text-xs'>Widget Title</Label>
+        <Input
+          type='text'
+          placeholder='Enter widget title...'
+          value={widgetTitle || ""}
+          onChange={(e) => onTitleChange(e.target.value)}
+          className='text-sm bg-slate-800 border-slate-600 text-white placeholder:text-slate-500'
+        />
+      </div>
+    )}
 
     {/* Image Upload */}
     <div className='space-y-2'>
@@ -177,7 +228,7 @@ const BackgroundSettingsPanel: React.FC<{
         value={[background.borderRadius]}
         onValueChange={([value]) => onUpdate({ borderRadius: value })}
         min={0}
-        max={50}
+        max={9999}
         step={1}
         className='w-full'
       />
@@ -202,13 +253,26 @@ const GridDashboard: React.FC = () => {
   const [dashboardBackground, setDashboardBackground] =
     useState<BackgroundSettings>(defaultBackground);
 
+  // Calculate cell height for 1:1 aspect ratio
+  const calculateCellHeight = () => {
+    if (!gridRef.current) return 80;
+    const containerWidth = gridRef.current.clientWidth;
+    const columns = 12; // Default GridStack columns
+    const margin = 8;
+    // Calculate cell width: (containerWidth - margins) / columns
+    const cellWidth = (containerWidth - margin * (columns + 1)) / columns;
+    return cellWidth;
+  };
+
   // Initialize GridStack ONCE
   useEffect(() => {
     if (!gridRef.current) return;
 
+    const initialCellHeight = calculateCellHeight();
+
     const grid = GridStack.init(
       {
-        cellHeight: 80,
+        cellHeight: initialCellHeight,
         margin: 8,
         float: true,
         columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
@@ -217,6 +281,16 @@ const GridDashboard: React.FC = () => {
     );
 
     gridInstance.current = grid;
+
+    // Update cell height on window resize to maintain 1:1 ratio
+    const handleResize = () => {
+      if (gridInstance.current) {
+        const newCellHeight = calculateCellHeight();
+        gridInstance.current.cellHeight(newCellHeight);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
 
     // Sync GridStack → React state
     grid.on("change", (_, items: GridStackNode[]) => {
@@ -237,6 +311,7 @@ const GridDashboard: React.FC = () => {
     });
 
     return () => {
+      window.removeEventListener("resize", handleResize);
       grid.destroy(false);
       gridInstance.current = null;
     };
@@ -250,8 +325,9 @@ const GridDashboard: React.FC = () => {
       id: Date.now().toString(),
       x: 0,
       y: 0,
-      w: 3,
+      w: 2,
       h: 2,
+      title: "",
       background: { ...defaultBackground },
     };
 
@@ -324,7 +400,7 @@ const GridDashboard: React.FC = () => {
         borderStyle: dashboardBackground.borderWidth > 0 ? "solid" : "none",
         borderColor: dashboardBackground.borderColor,
         borderRadius: dashboardBackground.borderRadius,
-        background: dashboardBackground.imageUrl ? "transparent" : "#0f172a",
+        background: dashboardBackground.imageUrl ? "transparent" : "#e5e7eb",
       }}>
       {/* Dashboard Background Image Layer */}
       {dashboardBackground.imageUrl && (
@@ -374,7 +450,7 @@ const GridDashboard: React.FC = () => {
               onReset={() => setDashboardBackground({ ...defaultBackground })}
               onImageUpload={handleDashboardImageUpload}
               onImageRemove={() => updateDashboardBackground({ imageUrl: "" })}
-              title='Dashboard Background'
+              panelTitle='Dashboard Background'
             />
           </PopoverContent>
         </Popover>
@@ -400,7 +476,7 @@ const GridDashboard: React.FC = () => {
                 borderStyle: w.background.borderWidth > 0 ? "solid" : "none",
                 borderColor: w.background.borderColor,
                 borderRadius: w.background.borderRadius,
-                background: w.background.imageUrl ? "transparent" : "#1e293b",
+                background: w.background.imageUrl ? "transparent" : "#ffffff",
               }}>
               {/* Widget Background Image Layer */}
               {w.background.imageUrl && (
@@ -427,7 +503,7 @@ const GridDashboard: React.FC = () => {
               <div
                 className='relative z-10 flex justify-between items-start h-full p-3'
                 style={{ color: "white" }}>
-                <span className='font-medium'>Widget {w.id}</span>
+                {w.title && <span className='font-medium'>{w.title}</span>}
                 <div className='flex gap-1'>
                   {/* Widget Background Settings */}
                   <Popover>
@@ -453,7 +529,15 @@ const GridDashboard: React.FC = () => {
                         onImageRemove={() =>
                           updateWidgetBackground(w.id, { imageUrl: "" })
                         }
-                        title='Widget Background'
+                        panelTitle='Widget Settings'
+                        widgetTitle={w.title}
+                        onTitleChange={(title) =>
+                          setWidgets((prev) =>
+                            prev.map((widget) =>
+                              widget.id === w.id ? { ...widget, title } : widget
+                            )
+                          )
+                        }
                       />
                     </PopoverContent>
                   </Popover>
