@@ -277,7 +277,7 @@ const GridDashboard: React.FC = () => {
         float: true,
         columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
       },
-      gridRef.current
+      gridRef.current,
     );
 
     gridInstance.current = grid;
@@ -306,7 +306,7 @@ const GridDashboard: React.FC = () => {
                 h: updated.h ?? w.h,
               }
             : w;
-        })
+        }),
       );
     });
 
@@ -354,12 +354,12 @@ const GridDashboard: React.FC = () => {
   // Update widget background
   const updateWidgetBackground = (
     id: string,
-    updates: Partial<BackgroundSettings>
+    updates: Partial<BackgroundSettings>,
   ) => {
     setWidgets((prev) =>
       prev.map((w) =>
-        w.id === id ? { ...w, background: { ...w.background, ...updates } } : w
-      )
+        w.id === id ? { ...w, background: { ...w.background, ...updates } } : w,
+      ),
     );
   };
 
@@ -379,7 +379,7 @@ const GridDashboard: React.FC = () => {
   // Handle widget image upload
   const handleWidgetImageUpload = (
     id: string,
-    e: ChangeEvent<HTMLInputElement>
+    e: ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -394,7 +394,7 @@ const GridDashboard: React.FC = () => {
 
   return (
     <div
-      className='relative min-h-[600px] p-4 overflow-hidden'
+      className='relative min-h-150 p-4 overflow-hidden'
       style={{
         borderWidth: dashboardBackground.borderWidth,
         borderStyle: dashboardBackground.borderWidth > 0 ? "solid" : "none",
@@ -534,8 +534,10 @@ const GridDashboard: React.FC = () => {
                         onTitleChange={(title) =>
                           setWidgets((prev) =>
                             prev.map((widget) =>
-                              widget.id === w.id ? { ...widget, title } : widget
-                            )
+                              widget.id === w.id
+                                ? { ...widget, title }
+                                : widget,
+                            ),
                           )
                         }
                       />
