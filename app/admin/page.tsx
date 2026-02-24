@@ -4,7 +4,7 @@ import { GridStack, GridStackNode } from "gridstack";
 import "gridstack/dist/gridstack.min.css";
 import "./grid-dashboard.css";
 import AdminWrapper from "./_components/AdminWrapper";
-import { Pen, Plus, Save } from "lucide-react";
+import { Pen, Plus, Save, Trash } from "lucide-react";
 import { DesktopIcon, GlobeIcon } from "@phosphor-icons/react";
 import HoverExtendBtn from "@/components/Buttons/HoverExtendBtn";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,14 +18,19 @@ import {
   selectWidget,
 } from "@/redux/dashboardSlice";
 import { RootState } from "@/redux/store";
-
 const AdminPage: React.FC = () => {
+  const [mounted, setMounted] = React.useState(false);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const gridInstance = useRef<GridStack | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { background: dashboardBackground, widgets } = useSelector(
     (state: RootState) => state.dashboard,
   );
+  const { activeSidebar } = useSelector((state: RootState) => state.sidebar);
 
   const dispatch = useDispatch();
   const widgetsRef = useRef(widgets);
@@ -36,7 +41,7 @@ const AdminPage: React.FC = () => {
 
   // Initialize GridStack ONCE
   useEffect(() => {
-    if (!gridRef.current) return;
+    if (!gridRef.current || !mounted) return;
 
     const COLUMNS = 82; // Increase this (e.g., 144) if you need even smaller resize increments
     const MARGIN = 2;
@@ -61,17 +66,14 @@ const AdminPage: React.FC = () => {
 
       const columns = gridInstance.current.getColumn();
       const containerWidth = gridRef.current.clientWidth;
-      const colWidth = (containerWidth - MARGIN * (columns + 1)) / columns;
+      const cellHeight = containerWidth / columns;
 
       // FIX 2: Pass as an exact string with "px" appended.
       // This forces GridStack to respect the floating-point precision
       // instead of rounding it to an integer, smoothing out vertical resizes.
-      gridInstance.current.cellHeight(`${colWidth}px`);
+      gridInstance.current.cellHeight(`${cellHeight}px`);
 
-      gridRef.current.style.setProperty(
-        "--cell-size",
-        `${colWidth + MARGIN}px`,
-      );
+      gridRef.current.style.setProperty("--cell-size", `${cellHeight}px`);
       gridRef.current.style.setProperty("--grid-columns", `${columns}`);
     };
 
@@ -108,7 +110,7 @@ const AdminPage: React.FC = () => {
       grid.destroy(false);
       gridInstance.current = null;
     };
-  }, [dispatch]);
+  }, [dispatch, mounted]);
 
   // Initialize GridStack ONCE
   // useEffect(() => {
@@ -209,7 +211,7 @@ const AdminPage: React.FC = () => {
           Icon: Save,
         },
       ]}>
-      <div className='w-fit p-2 mb-2 rounded-full mx-auto border border-gray-100 flex items-center justify-center gap-2 transition-all duration-300'>
+      <div className='w-fit mb-1.5 rounded-full mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
         <HoverExtendBtn
           Icon={Plus}
           label='Add Widget'
@@ -228,6 +230,16 @@ const AdminPage: React.FC = () => {
             dispatch(setActiveSidebar("background"));
           }}
         />
+        {activeSidebar !== "background" && (
+          <HoverExtendBtn
+            Icon={Trash}
+            label='Delete'
+            className='bg-red-200/80 transition-all duration-300'
+            onClick={() => {
+              dispatch(setActiveSidebar("background"));
+            }}
+          />
+        )}
       </div>
 
       <div
@@ -267,63 +279,66 @@ const AdminPage: React.FC = () => {
         <div
           className='grid-stack relative z-10'
           ref={gridRef}>
-          {widgets.map((w: Widget) => (
-            <div
-              key={w.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(selectWidget(w.id));
-                dispatch(setActiveSidebar("widget-settings"));
-              }}
-              className='grid-stack-item'
-              gs-id={w.id}
-              gs-x={w.x}
-              gs-y={w.y}
-              gs-w={w.w}
-              gs-h={w.h}>
+          {mounted &&
+            widgets.map((w: Widget) => (
               <div
-                className='grid-stack-item-content relative overflow-hidden border-2 border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out'
-                style={{
-                  borderWidth:
-                    w.background.borderWidth > 0
-                      ? w.background.borderWidth
-                      : undefined,
-                  borderStyle: "solid",
-                  borderColor:
-                    w.background.borderWidth > 0
-                      ? w.background.borderColor
-                      : undefined,
-                  // borderRadius: w.background.borderRadius,
-                  background: w.background.imageUrl ? "transparent" : "#ffffff",
-                }}>
-                {/* Widget Background Image Layer */}
-                {w.background.imageUrl && (
-                  <div
-                    className='absolute inset-0 bg-cover bg-center'
-                    style={{
-                      backgroundImage: `url(${w.background.imageUrl})`,
-                      opacity: w.background.opacity / 100,
-                      filter: `blur(${w.background.blur}px)`,
-                      borderRadius: w.background.borderRadius,
-                    }}
-                  />
-                )}
-
-                {/* Dark overlay for widget */}
-                {w.background.imageUrl && (
-                  <div
-                    className='absolute inset-0 bg-black/30'
-                    style={{ borderRadius: w.background.borderRadius }}
-                  />
-                )}
-
-                {/* Widget Content */}
+                key={w.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch(selectWidget(w.id));
+                  dispatch(setActiveSidebar("widget-settings"));
+                }}
+                className='grid-stack-item'
+                gs-id={w.id}
+                gs-x={w.x}
+                gs-y={w.y}
+                gs-w={w.w}
+                gs-h={w.h}>
                 <div
-                  className='relative z-10 flex justify-between items-start h-full p-3'
-                  style={{ color: "white" }}>
-                  {w.title && <span className='font-medium'>{w.title}</span>}
-                  <div className='flex gap-1'>
-                    {/* Widget Background Settings */}
+                  className='grid-stack-item-content relative overflow-hidden border-2 border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out'
+                  style={{
+                    borderWidth:
+                      w.background.borderWidth > 0
+                        ? w.background.borderWidth
+                        : undefined,
+                    borderStyle: "solid",
+                    borderColor:
+                      w.background.borderWidth > 0
+                        ? w.background.borderColor
+                        : undefined,
+                    // borderRadius: w.background.borderRadius,
+                    background: w.background.imageUrl
+                      ? "transparent"
+                      : "#ffffff",
+                  }}>
+                  {/* Widget Background Image Layer */}
+                  {w.background.imageUrl && (
+                    <div
+                      className='absolute inset-0 bg-cover bg-center'
+                      style={{
+                        backgroundImage: `url(${w.background.imageUrl})`,
+                        opacity: w.background.opacity / 100,
+                        filter: `blur(${w.background.blur}px)`,
+                        borderRadius: w.background.borderRadius,
+                      }}
+                    />
+                  )}
+
+                  {/* Dark overlay for widget */}
+                  {w.background.imageUrl && (
+                    <div
+                      className='absolute inset-0 bg-black/30'
+                      style={{ borderRadius: w.background.borderRadius }}
+                    />
+                  )}
+
+                  {/* Widget Content */}
+                  <div
+                    className='relative z-10 flex justify-between items-start h-full p-3'
+                    style={{ color: "white" }}>
+                    {w.title && <span className='font-medium'>{w.title}</span>}
+                    <div className='flex gap-1'>
+                      {/* Widget Background Settings
                     <button
                       className='p-1.5 rounded-md hover:bg-white/20 transition-colors'
                       onClick={(e) => {
@@ -333,20 +348,20 @@ const AdminPage: React.FC = () => {
                       }}
                       title='Widget Background Settings'>
                       🎨
-                    </button>
+                    </button> */}
 
-                    {/* Remove Widget Button */}
-                    <button
-                      onClick={() => removeWidget(w.id)}
-                      className='p-1.5 rounded-md hover:bg-red-500/50 transition-colors'
-                      title='Remove Widget'>
-                      ✖
-                    </button>
+                      {/* Remove Widget Button */}
+                      <button
+                        onClick={() => removeWidget(w.id)}
+                        className='p-1.5 rounded-md hover:bg-red-500/50 transition-colors'
+                        title='Remove Widget'>
+                        ✖
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </AdminWrapper>
