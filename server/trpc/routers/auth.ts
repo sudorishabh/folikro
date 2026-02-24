@@ -5,73 +5,56 @@ import { db } from "@/server/db";
 import { usersTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
-// Validation schema for registration
-export const registerSchema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email address"),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
 export const authRouter = router({
   register: publicProcedure
-    .input(registerSchema)
+    .input(
+      z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        password: z.string().min(8),
+      }),
+    )
     .mutation(async ({ input }) => {
-      const { name, email, password } = input;
-
       // Check if user already exists
-      const [existingUser] = await db
-        .select()
+      const [existing] = await db
+        .select({ id: usersTable.id })
         .from(usersTable)
-        .where(eq(usersTable.email, email))
+        .where(eq(usersTable.email, input.email))
         .limit(1);
 
-      if (existingUser) {
-        throw new Error("User with this email already exists");
+      if (existing) {
+        throw new Error("A user with this email already exists");
       }
 
-      // Hash the password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Generate a username from the email
-      const baseUsername = email
+      // Generate unique username from email
+      const baseUsername = input.email
         .split("@")[0]
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "");
-      const username = `${baseUsername}-${Date.now().toString(36)}`;
+        .replace(/[^a-z0-9]/gi, "")
+        .toLowerCase();
+      let username = baseUsername;
+      let suffix = 1;
 
-      // Create user in database
-      const [user] = await db
-        .insert(usersTable)
-        .values({
-          name,
-          email,
-          password: hashedPassword,
-          username,
-        })
-        .returning({
-          id: usersTable.id,
-          name: usersTable.name,
-          email: usersTable.email,
-        });
+      while (true) {
+        const [conflict] = await db
+          .select({ id: usersTable.id })
+          .from(usersTable)
+          .where(eq(usersTable.username, username))
+          .limit(1);
 
-      return {
-        success: true,
-        message: "User registered successfully",
-        user: {
-          name: user.name,
-          email: user.email,
-        },
-      };
+        if (!conflict) break;
+        username = `${baseUsername}${suffix++}`;
+      }
+
+      // Hash password and create user
+      const hashedPassword = await bcrypt.hash(input.password, 12);
+
+      await db.insert(usersTable).values({
+        email: input.email,
+        name: input.name,
+        username,
+        password: hashedPassword,
+      });
+
+      return { message: "Account created successfully" };
     }),
 });

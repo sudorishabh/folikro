@@ -1,8 +1,7 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 export async function createTRPCContext() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   return {
     session,

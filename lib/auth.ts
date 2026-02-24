@@ -7,7 +7,6 @@ import { usersTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const authOptions: AuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -21,90 +20,122 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials");
+          throw new Error("Email and password are required");
         }
 
-        try {
-          const [user] = await db
-            .select()
-            .from(usersTable)
-            .where(eq(usersTable.email, credentials.email))
-            .limit(1);
+        const [user] = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.email, credentials.email))
+          .limit(1);
 
-          if (!user || !user.password) {
-            throw new Error("Invalid credentials");
-          }
-
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.password,
-          );
-
-          if (!isPasswordValid) {
-            throw new Error("Invalid credentials");
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-          };
-        } catch (error) {
-          console.error("Credentials auth error:", error);
-          throw new Error("Invalid credentials");
+        if (!user || !user.password) {
+          throw new Error("Invalid email or password");
         }
+
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password,
+        );
+
+        if (!isValid) {
+          throw new Error("Invalid email or password");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.avatar,
+        };
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
+
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as { id?: string }).id = token.id as string;
-      }
-      return session;
-    },
     async signIn({ user, account }) {
-      // Handle Google sign-in: auto-create user if not exists
-      // If DB fails, block sign-in — no DB entry = no access
-      if (account?.provider === "google" && user.email) {
+      // For Google sign-in, find or create the user in the database
+      if (account?.provider === "google") {
         try {
           const [existingUser] = await db
             .select()
             .from(usersTable)
-            .where(eq(usersTable.email, user.email))
+            .where(eq(usersTable.email, user.email!))
             .limit(1);
 
           if (!existingUser) {
-            const username = user.email
-              .split("@")[0]
-              .toLowerCase()
-              .replace(/[^a-z0-9]/g, "");
+            // Generate a unique username from the email prefix
+            const baseUsername = user
+              .email!.split("@")[0]
+              .replace(/[^a-z0-9]/gi, "")
+              .toLowerCase();
+            let username = baseUsername;
+            let suffix = 1;
+
+            // Ensure username uniqueness
+            while (true) {
+              const [conflict] = await db
+                .select({ id: usersTable.id })
+                .from(usersTable)
+                .where(eq(usersTable.username, username))
+                .limit(1);
+
+              if (!conflict) break;
+              username = `${baseUsername}${suffix++}`;
+            }
+
             await db.insert(usersTable).values({
-              email: user.email,
-              name: user.name || "User",
-              username: `${username}-${Date.now().toString(36)}`,
-              avatar: user.image || null,
+              email: user.email!,
+              name: user.name ?? "User",
+              username,
+              avatar: user.image,
             });
           }
+
+          return true;
         } catch (error) {
-          console.error("Google sign-in blocked — DB error:", error);
-          // Block sign-in: no DB record = no access
+          console.error("Error during Google sign-in:", error);
           return false;
         }
       }
+
       return true;
     },
+
+    async jwt({ token, user, account }) {
+      // On initial sign-in, attach the DB user id
+      if (user) {
+        const [dbUser] = await db
+          .select({ id: usersTable.id, username: usersTable.username })
+          .from(usersTable)
+          .where(eq(usersTable.email, user.email!))
+          .limit(1);
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.username = dbUser.username;
+        }
+      }
+
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.username = token.username as string;
+      }
+      return session;
+    },
   },
+
   pages: {
     signIn: "/auth/login",
   },
+
+  session: {
+    strategy: "jwt",
+  },
+
+  secret: process.env.NEXTAUTH_SECRET,
 };
