@@ -13,10 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminWrapper from "./_components/AdminWrapper";
-import { Eye, Plus, Save } from "lucide-react";
+import { Pen, Plus, Save } from "lucide-react";
 import { DesktopIcon, GlobeIcon } from "@phosphor-icons/react";
 import Button from "@/components/Buttons/Button";
 import HoverExtendBtn from "@/components/Buttons/HoverExtendBtn";
+// import Button as CustomButton from "@/components/ui/Button";
 
 type BackgroundSettings = {
   imageUrl: string;
@@ -413,10 +414,11 @@ const AdminPage: React.FC = () => {
           Icon: Save,
         },
       ]}>
-      <div className='w-fit p-2 mb-6 rounded-full mx-auto border border-gray-100 flex items-center justify-center gap-2 transition-all duration-300'>
+      <div className='w-fit p-2 mb-2 rounded-full mx-auto border border-gray-100 flex items-center justify-center gap-2 transition-all duration-300'>
         <HoverExtendBtn
-          Icon={Eye}
-          label='View'
+          Icon={Pen}
+          label='Edit'
+          onClick={() => {}}
         />
         <HoverExtendBtn
           Icon={Plus}
@@ -425,7 +427,7 @@ const AdminPage: React.FC = () => {
         />
         <HoverExtendBtn
           Icon={DesktopIcon}
-          label='Show tablet view'
+          label='Tablet view'
           onClick={addWidget}
         />
         {/* <button
@@ -433,7 +435,7 @@ const AdminPage: React.FC = () => {
           className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'>
         </button> */}
         {/* <button>Background</button> */}
-        {/* <Popover>
+        <Popover>
           <PopoverTrigger asChild>
             <Button
               variant='outline'
@@ -454,7 +456,7 @@ const AdminPage: React.FC = () => {
               panelTitle='Dashboard Background'
             />
           </PopoverContent>
-        </Popover> */}
+        </Popover>
       </div>
 
       <div
