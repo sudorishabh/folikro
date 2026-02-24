@@ -7,6 +7,7 @@ import { usersTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const authOptions: AuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
