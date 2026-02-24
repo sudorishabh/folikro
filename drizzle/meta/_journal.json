@@ -8,6 +8,13 @@
       "when": 1768306974851,
       "tag": "0000_far_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771929462911,
+      "tag": "0001_perfect_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }

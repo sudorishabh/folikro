@@ -6,6 +6,7 @@ import { trpc } from "@/utils/trpc";
 import { useState } from "react";
 import { store } from "@/redux/store";
 import { Provider as ReduxProvider } from "react-redux";
+import { SessionProvider } from "next-auth/react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -21,12 +22,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <trpc.Provider
-      client={trpcClient}
-      queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <ReduxProvider store={store}>{children}</ReduxProvider>
-      </QueryClientProvider>
-    </trpc.Provider>
+    <SessionProvider>
+      <trpc.Provider
+        client={trpcClient}
+        queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <ReduxProvider store={store}>{children}</ReduxProvider>
+        </QueryClientProvider>
+      </trpc.Provider>
+    </SessionProvider>
   );
 }

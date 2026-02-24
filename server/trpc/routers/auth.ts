@@ -1,6 +1,9 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { db } from "@/server/db";
+import { usersTable } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
 // Validation schema for registration
 export const registerSchema = z
@@ -26,34 +29,48 @@ export const authRouter = router({
     .mutation(async ({ input }) => {
       const { name, email, password } = input;
 
-      // TODO: Check if user already exists in your database
-      // Example:
-      // const existingUser = await db.user.findUnique({ where: { email } });
-      // if (existingUser) {
-      //   throw new Error("User already exists");
-      // }
+      // Check if user already exists
+      const [existingUser] = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, email))
+        .limit(1);
+
+      if (existingUser) {
+        throw new Error("User with this email already exists");
+      }
 
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // TODO: Create user in your database
-      // Example:
-      // const user = await db.user.create({
-      //   data: {
-      //     name,
-      //     email,
-      //     password: hashedPassword, // Use the hashed password here
-      //   },
-      // });
+      // Generate a username from the email
+      const baseUsername = email
+        .split("@")[0]
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+      const username = `${baseUsername}-${Date.now().toString(36)}`;
 
-      // For now, return a success message
-      // In production, you would return the created user
+      // Create user in database
+      const [user] = await db
+        .insert(usersTable)
+        .values({
+          name,
+          email,
+          password: hashedPassword,
+          username,
+        })
+        .returning({
+          id: usersTable.id,
+          name: usersTable.name,
+          email: usersTable.email,
+        });
+
       return {
         success: true,
         message: "User registered successfully",
         user: {
-          name,
-          email,
+          name: user.name,
+          email: user.email,
         },
       };
     }),
