@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import counterReducer from "./counterSlice";
 import sidebarReducer from "./sidebarSlice";
+import dashboardReducer from "./dashboardSlice";
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
     sidebar: sidebarReducer,
+    dashboard: dashboardReducer,
   },
 });
 
