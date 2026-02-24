@@ -241,13 +241,13 @@ const BackgroundSettingsPanel: React.FC<{
     </div>
 
     {/* Reset Button */}
-    <Button
+    {/* <Button
       variant='outline'
       size='sm'
       onClick={onReset}
       className='w-full text-xs bg-slate-800 border-slate-600 text-white hover:bg-slate-700'>
       Reset to Default
-    </Button>
+    </Button> */}
   </div>
 );
 
@@ -274,28 +274,47 @@ const AdminPage: React.FC = () => {
   useEffect(() => {
     if (!gridRef.current) return;
 
-    const initialCellHeight = calculateCellHeight();
+    const COLUMNS = 82; // Increase this (e.g., 144) if you need even smaller resize increments
+    const MARGIN = 2;
 
     const grid = GridStack.init(
       {
-        cellHeight: initialCellHeight,
-        margin: 8,
+        column: COLUMNS,
+        cellHeight: 20,
+        margin: MARGIN,
         float: true,
-        columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
+        resizable: { handles: "e, se, s, sw, w" },
+        // FIX 1: Remove `columnOpts` breakpoints so your grid maintains a high
+        // 96-column resolution on all screen sizes, ensuring fine-grained resizing.
       },
       gridRef.current,
     );
 
     gridInstance.current = grid;
 
-    // Update cell height on window resize to maintain 1:1 ratio
-    const handleResize = () => {
-      if (gridInstance.current) {
-        const newCellHeight = calculateCellHeight();
-        gridInstance.current.cellHeight(newCellHeight);
-      }
+    const syncDimensions = () => {
+      if (!gridRef.current || !gridInstance.current) return;
+
+      const columns = gridInstance.current.getColumn();
+      const containerWidth = gridRef.current.clientWidth;
+      const colWidth = (containerWidth - MARGIN * (columns + 1)) / columns;
+
+      // FIX 2: Pass as an exact string with "px" appended.
+      // This forces GridStack to respect the floating-point precision
+      // instead of rounding it to an integer, smoothing out vertical resizes.
+      gridInstance.current.cellHeight(`${colWidth}px`);
+
+      gridRef.current.style.setProperty(
+        "--cell-size",
+        `${colWidth + MARGIN}px`,
+      );
+      gridRef.current.style.setProperty("--grid-columns", `${columns}`);
     };
 
+    // Initial sync
+    syncDimensions();
+
+    const handleResize = () => syncDimensions();
     window.addEventListener("resize", handleResize);
 
     // Sync GridStack → React state
@@ -316,12 +335,70 @@ const AdminPage: React.FC = () => {
       );
     });
 
+    // Add min-constraints to all items
+    grid.getGridItems().forEach((el) => {
+      grid.update(el, { minW: 2, minH: 2 });
+    });
+
     return () => {
       window.removeEventListener("resize", handleResize);
       grid.destroy(false);
       gridInstance.current = null;
     };
   }, []);
+
+  // Initialize GridStack ONCE
+  // useEffect(() => {
+  //   if (!gridRef.current) return;
+
+  //   const initialCellHeight = calculateCellHeight();
+
+  //   const grid = GridStack.init(
+  //     {
+  //       cellHeight: initialCellHeight,
+  //       margin: 8,
+  //       float: true,
+  //       columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
+  //     },
+  //     gridRef.current,
+  //   );
+
+  //   gridInstance.current = grid;
+
+  //   // Update cell height on window resize to maintain 1:1 ratio
+  //   const handleResize = () => {
+  //     if (gridInstance.current) {
+  //       const newCellHeight = calculateCellHeight();
+  //       gridInstance.current.cellHeight(newCellHeight);
+  //     }
+  //   };
+
+  //   window.addEventListener("resize", handleResize);
+
+  //   // Sync GridStack → React state
+  //   grid.on("change", (_, items: GridStackNode[]) => {
+  //     setWidgets((prev) =>
+  //       prev.map((w) => {
+  //         const updated = items.find((i) => i.id === w.id);
+  //         return updated
+  //           ? {
+  //               ...w,
+  //               x: updated.x ?? w.x,
+  //               y: updated.y ?? w.y,
+  //               w: updated.w ?? w.w,
+  //               h: updated.h ?? w.h,
+  //             }
+  //           : w;
+  //       }),
+  //     );
+  //   });
+
+  //   return () => {
+  //     window.removeEventListener("resize", handleResize);
+  //     grid.destroy(false);
+  //     gridInstance.current = null;
+  //   };
+  // }, []);
 
   // Add widget dynamically
   const addWidget = () => {
@@ -416,11 +493,6 @@ const AdminPage: React.FC = () => {
       ]}>
       <div className='w-fit p-2 mb-2 rounded-full mx-auto border border-gray-100 flex items-center justify-center gap-2 transition-all duration-300'>
         <HoverExtendBtn
-          Icon={Pen}
-          label='Edit'
-          onClick={() => {}}
-        />
-        <HoverExtendBtn
           Icon={Plus}
           label='Add Widget'
           onClick={addWidget}
@@ -430,18 +502,10 @@ const AdminPage: React.FC = () => {
           label='Tablet view'
           onClick={addWidget}
         />
-        {/* <button
-          onClick={addWidget}
-          className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'>
-        </button> */}
-        {/* <button>Background</button> */}
+
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant='outline'
-              className='bg-slate-800/80 border-slate-600 text-white hover:bg-slate-700'>
-              🎨 Dashboard Background
-            </Button>
+            <Button label='Dashboard Background' />
           </PopoverTrigger>
           <PopoverContent
             className='w-80 bg-slate-900 border-slate-700'
@@ -460,12 +524,15 @@ const AdminPage: React.FC = () => {
       </div>
 
       <div
-        className='relative min-h-150 p-4 overflow-hidden'
+        className='relative border-2 border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out'
+        onClick={() => {
+          console.log("clicked");
+        }}
         style={{
-          borderWidth: dashboardBackground.borderWidth,
-          borderStyle: dashboardBackground.borderWidth > 0 ? "solid" : "none",
-          borderColor: dashboardBackground.borderColor,
-          borderRadius: dashboardBackground.borderRadius,
+          // borderWidth: dashboardBackground.borderWidth,
+          // borderStyle: dashboardBackground.borderWidth > 0 ? "solid" : "none",
+          // borderColor: dashboardBackground.borderColor,
+          // borderRadius: dashboardBackground.borderRadius,
           background: dashboardBackground.imageUrl ? "transparent" : "#e5e7eb",
         }}>
         {/* Dashboard Background Image Layer */}
@@ -496,6 +563,10 @@ const AdminPage: React.FC = () => {
           {widgets.map((w) => (
             <div
               key={w.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("widget clicked");
+              }}
               className='grid-stack-item'
               gs-id={w.id}
               gs-x={w.x}
@@ -503,12 +574,18 @@ const AdminPage: React.FC = () => {
               gs-w={w.w}
               gs-h={w.h}>
               <div
-                className='grid-stack-item-content relative overflow-hidden'
+                className='grid-stack-item-content relative overflow-hidden border-2 border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out'
                 style={{
-                  borderWidth: w.background.borderWidth,
-                  borderStyle: w.background.borderWidth > 0 ? "solid" : "none",
-                  borderColor: w.background.borderColor,
-                  borderRadius: w.background.borderRadius,
+                  borderWidth:
+                    w.background.borderWidth > 0
+                      ? w.background.borderWidth
+                      : undefined,
+                  borderStyle: "solid",
+                  borderColor:
+                    w.background.borderWidth > 0
+                      ? w.background.borderColor
+                      : undefined,
+                  // borderRadius: w.background.borderRadius,
                   background: w.background.imageUrl ? "transparent" : "#ffffff",
                 }}>
                 {/* Widget Background Image Layer */}
