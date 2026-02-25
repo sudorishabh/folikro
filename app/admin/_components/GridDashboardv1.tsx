@@ -16,9 +16,6 @@ type WidgetBackground = {
   imageUrl: string;
   opacity: number;
   blur: number;
-  borderWidth: number;
-  borderColor: string;
-  borderRadius: number;
 };
 
 type Widget = {
@@ -34,9 +31,6 @@ const defaultBackground: WidgetBackground = {
   imageUrl: "",
   opacity: 100,
   blur: 0,
-  borderWidth: 0,
-  borderColor: "#3b82f6",
-  borderRadius: 8,
 };
 
 const initialWidgets: Widget[] = [
@@ -64,7 +58,7 @@ const GridDashboard: React.FC = () => {
         float: true,
         columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
       },
-      gridRef.current
+      gridRef.current,
     );
 
     gridInstance.current = grid;
@@ -83,7 +77,7 @@ const GridDashboard: React.FC = () => {
                 h: updated.h ?? w.h,
               }
             : w;
-        })
+        }),
       );
     });
 
@@ -127,12 +121,12 @@ const GridDashboard: React.FC = () => {
   // Update widget background
   const updateWidgetBackground = (
     id: string,
-    updates: Partial<WidgetBackground>
+    updates: Partial<WidgetBackground>,
   ) => {
     setWidgets((prev) =>
       prev.map((w) =>
-        w.id === id ? { ...w, background: { ...w.background, ...updates } } : w
-      )
+        w.id === id ? { ...w, background: { ...w.background, ...updates } } : w,
+      ),
     );
   };
 
@@ -177,10 +171,6 @@ const GridDashboard: React.FC = () => {
             <div
               className='grid-stack-item-content relative overflow-hidden'
               style={{
-                borderWidth: w.background.borderWidth,
-                borderStyle: w.background.borderWidth > 0 ? "solid" : "none",
-                borderColor: w.background.borderColor,
-                borderRadius: w.background.borderRadius,
                 background: w.background.imageUrl ? "transparent" : "#1e293b",
               }}>
               {/* Background Image Layer */}
@@ -191,19 +181,13 @@ const GridDashboard: React.FC = () => {
                     backgroundImage: `url(${w.background.imageUrl})`,
                     opacity: w.background.opacity / 100,
                     filter: `blur(${w.background.blur}px)`,
-                    borderRadius: w.background.borderRadius,
                   }}
                 />
               )}
 
               {/* Dark overlay for better text readability */}
               {w.background.imageUrl && (
-                <div
-                  className='absolute inset-0 bg-black/30'
-                  style={{
-                    borderRadius: w.background.borderRadius,
-                  }}
-                />
+                <div className='absolute inset-0 bg-black/30' />
               )}
 
               {/* Widget Content */}
@@ -301,82 +285,6 @@ const GridDashboard: React.FC = () => {
                             }
                             min={0}
                             max={20}
-                            step={1}
-                            className='w-full'
-                          />
-                        </div>
-
-                        {/* Border Width Slider */}
-                        <div className='space-y-2'>
-                          <div className='flex justify-between'>
-                            <Label className='text-slate-300 text-xs'>
-                              Border Width
-                            </Label>
-                            <span className='text-slate-400 text-xs'>
-                              {w.background.borderWidth}px
-                            </span>
-                          </div>
-                          <Slider
-                            value={[w.background.borderWidth]}
-                            onValueChange={([value]) =>
-                              updateWidgetBackground(w.id, {
-                                borderWidth: value,
-                              })
-                            }
-                            min={0}
-                            max={10}
-                            step={1}
-                            className='w-full'
-                          />
-                        </div>
-
-                        {/* Border Color */}
-                        <div className='space-y-2'>
-                          <Label className='text-slate-300 text-xs'>
-                            Border Color
-                          </Label>
-                          <div className='flex gap-2 items-center'>
-                            <input
-                              type='color'
-                              value={w.background.borderColor}
-                              onChange={(e) =>
-                                updateWidgetBackground(w.id, {
-                                  borderColor: e.target.value,
-                                })
-                              }
-                              className='w-10 h-8 rounded cursor-pointer border-0'
-                            />
-                            <Input
-                              value={w.background.borderColor}
-                              onChange={(e) =>
-                                updateWidgetBackground(w.id, {
-                                  borderColor: e.target.value,
-                                })
-                              }
-                              className='flex-1 bg-slate-800 border-slate-600 text-white text-xs'
-                            />
-                          </div>
-                        </div>
-
-                        {/* Border Radius Slider */}
-                        <div className='space-y-2'>
-                          <div className='flex justify-between'>
-                            <Label className='text-slate-300 text-xs'>
-                              Rounded Corners
-                            </Label>
-                            <span className='text-slate-400 text-xs'>
-                              {w.background.borderRadius}px
-                            </span>
-                          </div>
-                          <Slider
-                            value={[w.background.borderRadius]}
-                            onValueChange={([value]) =>
-                              updateWidgetBackground(w.id, {
-                                borderRadius: value,
-                              })
-                            }
-                            min={0}
-                            max={50}
                             step={1}
                             className='w-full'
                           />

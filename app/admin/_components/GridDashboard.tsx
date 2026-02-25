@@ -17,9 +17,6 @@ type BackgroundSettings = {
   imageUrl: string;
   opacity: number;
   blur: number;
-  borderWidth: number;
-  borderColor: string;
-  borderRadius: number;
 };
 
 type Widget = {
@@ -36,9 +33,6 @@ const defaultBackground: BackgroundSettings = {
   imageUrl: "",
   opacity: 100,
   blur: 0,
-  borderWidth: 0,
-  borderColor: "#3b82f6",
-  borderRadius: 8,
 };
 
 const initialWidgets: Widget[] = [
@@ -175,60 +169,6 @@ const BackgroundSettingsPanel: React.FC<{
         onValueChange={([value]) => onUpdate({ blur: value })}
         min={0}
         max={20}
-        step={1}
-        className='w-full'
-      />
-    </div>
-
-    {/* Border Width Slider */}
-    <div className='space-y-2'>
-      <div className='flex justify-between'>
-        <Label className='text-slate-300 text-xs'>Border Width</Label>
-        <span className='text-slate-400 text-xs'>
-          {background.borderWidth}px
-        </span>
-      </div>
-      <Slider
-        value={[background.borderWidth]}
-        onValueChange={([value]) => onUpdate({ borderWidth: value })}
-        min={0}
-        max={10}
-        step={1}
-        className='w-full'
-      />
-    </div>
-
-    {/* Border Color */}
-    <div className='space-y-2'>
-      <Label className='text-slate-300 text-xs'>Border Color</Label>
-      <div className='flex gap-2 items-center'>
-        <input
-          type='color'
-          value={background.borderColor}
-          onChange={(e) => onUpdate({ borderColor: e.target.value })}
-          className='w-10 h-8 rounded cursor-pointer border-0'
-        />
-        <Input
-          value={background.borderColor}
-          onChange={(e) => onUpdate({ borderColor: e.target.value })}
-          className='flex-1 bg-slate-800 border-slate-600 text-white text-xs'
-        />
-      </div>
-    </div>
-
-    {/* Border Radius Slider */}
-    <div className='space-y-2'>
-      <div className='flex justify-between'>
-        <Label className='text-slate-300 text-xs'>Rounded Corners</Label>
-        <span className='text-slate-400 text-xs'>
-          {background.borderRadius}px
-        </span>
-      </div>
-      <Slider
-        value={[background.borderRadius]}
-        onValueChange={([value]) => onUpdate({ borderRadius: value })}
-        min={0}
-        max={9999}
         step={1}
         className='w-full'
       />
@@ -396,10 +336,6 @@ const GridDashboard: React.FC = () => {
     <div
       className='relative min-h-150 p-4 overflow-hidden'
       style={{
-        borderWidth: dashboardBackground.borderWidth,
-        borderStyle: dashboardBackground.borderWidth > 0 ? "solid" : "none",
-        borderColor: dashboardBackground.borderColor,
-        borderRadius: dashboardBackground.borderRadius,
         background: dashboardBackground.imageUrl ? "transparent" : "#e5e7eb",
       }}>
       {/* Dashboard Background Image Layer */}
@@ -410,17 +346,13 @@ const GridDashboard: React.FC = () => {
             backgroundImage: `url(${dashboardBackground.imageUrl})`,
             opacity: dashboardBackground.opacity / 100,
             filter: `blur(${dashboardBackground.blur}px)`,
-            borderRadius: dashboardBackground.borderRadius,
           }}
         />
       )}
 
       {/* Dark overlay for dashboard */}
       {dashboardBackground.imageUrl && (
-        <div
-          className='absolute inset-0 bg-black/30'
-          style={{ borderRadius: dashboardBackground.borderRadius }}
-        />
+        <div className='absolute inset-0 bg-black/30' />
       )}
 
       {/* Controls Bar */}
@@ -472,10 +404,6 @@ const GridDashboard: React.FC = () => {
             <div
               className='grid-stack-item-content relative overflow-hidden'
               style={{
-                borderWidth: w.background.borderWidth,
-                borderStyle: w.background.borderWidth > 0 ? "solid" : "none",
-                borderColor: w.background.borderColor,
-                borderRadius: w.background.borderRadius,
                 background: w.background.imageUrl ? "transparent" : "#ffffff",
               }}>
               {/* Widget Background Image Layer */}
@@ -486,17 +414,13 @@ const GridDashboard: React.FC = () => {
                     backgroundImage: `url(${w.background.imageUrl})`,
                     opacity: w.background.opacity / 100,
                     filter: `blur(${w.background.blur}px)`,
-                    borderRadius: w.background.borderRadius,
                   }}
                 />
               )}
 
               {/* Dark overlay for widget */}
               {w.background.imageUrl && (
-                <div
-                  className='absolute inset-0 bg-black/30'
-                  style={{ borderRadius: w.background.borderRadius }}
-                />
+                <div className='absolute inset-0 bg-black/30' />
               )}
 
               {/* Widget Content */}

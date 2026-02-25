@@ -18,6 +18,70 @@ import {
   selectWidget,
 } from "@/redux/dashboardSlice";
 import { RootState } from "@/redux/store";
+import { cn } from "@/lib/utils";
+import { SHAPE_PATTERNS } from "@/components/Sidebar/AppSidebar";
+
+// Helper: detect if the background value is an actual image URL/data URI
+const isImageUrl = (val: string) =>
+  val.startsWith("http") || val.startsWith("data:") || val.startsWith("blob:");
+
+// Helper: get CSS background-size for a pattern
+function getPatternSize(patternId: string): string {
+  switch (patternId) {
+    case "dots":
+      return "20px 20px";
+    case "grid":
+      return "20px 20px";
+    case "diagonal":
+      return "14px 14px";
+    case "crosshatch":
+      return "14px 14px";
+    case "horizontal-lines":
+      return "100% 15px";
+    case "vertical-lines":
+      return "15px 100%";
+    case "checkerboard":
+      return "20px 20px";
+    case "zigzag":
+      return "20px 20px";
+    case "triangles":
+      return "30px 30px";
+    default:
+      return "20px 20px";
+  }
+}
+
+function getPatternBackgroundPosition(patternId: string): string | undefined {
+  if (patternId === "checkerboard") return "0 0, 10px 10px";
+  return undefined;
+}
+
+// Helper: render a pattern overlay given BackgroundSettings
+function renderPatternOverlay(bg: {
+  pattern: string;
+  patternColor: string;
+  patternOpacity: number;
+}) {
+  if (!bg.pattern) return null;
+  const patternDef = SHAPE_PATTERNS.find((p) => p.id === bg.pattern);
+  if (!patternDef) return null;
+  const hex = bg.patternColor;
+  const alpha = bg.patternOpacity / 100;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const rgba = `rgba(${r},${g},${b},${alpha})`;
+  return (
+    <div
+      className='absolute inset-0'
+      style={{
+        backgroundImage: patternDef.css(rgba, alpha),
+        backgroundSize: getPatternSize(patternDef.id),
+        backgroundPosition: getPatternBackgroundPosition(patternDef.id),
+      }}
+    />
+  );
+}
 const AdminPage: React.FC = () => {
   const [mounted, setMounted] = React.useState(false);
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -211,7 +275,7 @@ const AdminPage: React.FC = () => {
           Icon: Save,
         },
       ]}>
-      <div className='w-fit mb-1.5 rounded-full mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
+      <div className='w-fit mb-1.5 mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
         <HoverExtendBtn
           Icon={Plus}
           label='Add Widget'
@@ -243,37 +307,37 @@ const AdminPage: React.FC = () => {
       </div>
 
       <div
-        className='relative border-2 border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out'
+        className={cn(
+          "relative border-[3px] border-transparent hover:border-green-600 has-[.grid-stack-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out",
+          activeSidebar === "background" && "border-green-600",
+        )}
         onClick={() => {
           dispatch(setActiveSidebar("background"));
         }}
         style={{
-          // borderWidth: dashboardBackground.borderWidth,
-          // borderStyle: dashboardBackground.borderWidth > 0 ? "solid" : "none",
-          // borderColor: dashboardBackground.borderColor,
-          // borderRadius: dashboardBackground.borderRadius,
           background: dashboardBackground.imageUrl ? "transparent" : "#e5e7eb",
         }}>
-        {/* Dashboard Background Image Layer */}
+        {/* Dashboard Background Layer */}
         {dashboardBackground.imageUrl && (
           <div
             className='absolute inset-0 bg-cover bg-center'
             style={{
-              backgroundImage: `url(${dashboardBackground.imageUrl})`,
+              ...(isImageUrl(dashboardBackground.imageUrl)
+                ? { backgroundImage: `url(${dashboardBackground.imageUrl})` }
+                : { background: dashboardBackground.imageUrl }),
               opacity: dashboardBackground.opacity / 100,
               filter: `blur(${dashboardBackground.blur}px)`,
-              borderRadius: dashboardBackground.borderRadius,
             }}
           />
         )}
 
         {/* Dark overlay for dashboard */}
         {dashboardBackground.imageUrl && (
-          <div
-            className='absolute inset-0 bg-black/30'
-            style={{ borderRadius: dashboardBackground.borderRadius }}
-          />
+          <div className='absolute inset-0 bg-black/30' />
         )}
+
+        {/* Pattern overlay for dashboard */}
+        {renderPatternOverlay(dashboardBackground)}
 
         {/* Grid Container */}
         <div
@@ -295,70 +359,45 @@ const AdminPage: React.FC = () => {
                 gs-w={w.w}
                 gs-h={w.h}>
                 <div
-                  className='grid-stack-item-content relative overflow-hidden border-2 border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out'
-                  style={{
-                    borderWidth:
-                      w.background.borderWidth > 0
-                        ? w.background.borderWidth
-                        : undefined,
-                    borderStyle: "solid",
-                    borderColor:
-                      w.background.borderWidth > 0
-                        ? w.background.borderColor
-                        : undefined,
-                    // borderRadius: w.background.borderRadius,
-                    background: w.background.imageUrl
-                      ? "transparent"
-                      : "#ffffff",
-                  }}>
-                  {/* Widget Background Image Layer */}
+                  className={cn(
+                    "grid-stack-item-content relative overflow-hidden border-[3px] border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out",
+                    w.background.imageUrl ? "bg-transparent" : "bg-[#ffffff]",
+                    activeSidebar === "widget-settings" && "border-blue-600",
+                  )}>
+                  {/* Widget Background Layer */}
                   {w.background.imageUrl && (
                     <div
                       className='absolute inset-0 bg-cover bg-center'
                       style={{
-                        backgroundImage: `url(${w.background.imageUrl})`,
+                        ...(isImageUrl(w.background.imageUrl)
+                          ? { backgroundImage: `url(${w.background.imageUrl})` }
+                          : { background: w.background.imageUrl }),
                         opacity: w.background.opacity / 100,
                         filter: `blur(${w.background.blur}px)`,
-                        borderRadius: w.background.borderRadius,
                       }}
                     />
                   )}
 
-                  {/* Dark overlay for widget */}
                   {w.background.imageUrl && (
-                    <div
-                      className='absolute inset-0 bg-black/30'
-                      style={{ borderRadius: w.background.borderRadius }}
-                    />
+                    <div className='absolute inset-0 bg-black/30' />
                   )}
 
-                  {/* Widget Content */}
-                  <div
+                  {/* Pattern overlay for widget */}
+                  {renderPatternOverlay(w.background)}
+
+                  {/* <d iv
                     className='relative z-10 flex justify-between items-start h-full p-3'
                     style={{ color: "white" }}>
                     {w.title && <span className='font-medium'>{w.title}</span>}
                     <div className='flex gap-1'>
-                      {/* Widget Background Settings
-                    <button
-                      className='p-1.5 rounded-md hover:bg-white/20 transition-colors'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        dispatch(selectWidget(w.id));
-                        dispatch(setActiveSidebar("widget-settings"));
-                      }}
-                      title='Widget Background Settings'>
-                      🎨
-                    </button> */}
-
-                      {/* Remove Widget Button */}
                       <button
                         onClick={() => removeWidget(w.id)}
-                        className='p-1.5 rounded-md hover:bg-red-500/50 transition-colors'
+                        className='p-1.5 hover:bg-red-500/50 transition-colors'
                         title='Remove Widget'>
                         ✖
                       </button>
                     </div>
-                  </div>
+                  </d> */}
                 </div>
               </div>
             ))}

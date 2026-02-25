@@ -53,7 +53,7 @@ export const BackgroundSettingsPanel: React.FC<
           type='file'
           accept='image/*'
           onChange={onImageUpload}
-          className='text-xs bg-slate-800 border-slate-600 text-white file:bg-slate-700 file:text-white file:border-0 file:rounded file:px-2 file:py-1'
+          className='text-xs bg-slate-800 border-slate-600 text-white file:bg-slate-700 file:text-white file:border-0 file:px-2 file:py-1'
         />
         {background.imageUrl && (
           <Button
@@ -66,7 +66,7 @@ export const BackgroundSettingsPanel: React.FC<
         )}
       </div>
       {background.imageUrl && (
-        <div className='w-full h-16 rounded overflow-hidden'>
+        <div className='w-full h-16 overflow-hidden'>
           <img
             src={background.imageUrl}
             alt='Preview'
@@ -103,60 +103,6 @@ export const BackgroundSettingsPanel: React.FC<
         onValueChange={([value]) => onUpdate({ blur: value })}
         min={0}
         max={20}
-        step={1}
-        className='w-full'
-      />
-    </div>
-
-    {/* Border Width Slider */}
-    <div className='space-y-2'>
-      <div className='flex justify-between'>
-        <Label className='text-slate-300 text-xs'>Border Width</Label>
-        <span className='text-slate-400 text-xs'>
-          {background.borderWidth}px
-        </span>
-      </div>
-      <Slider
-        value={[background.borderWidth]}
-        onValueChange={([value]) => onUpdate({ borderWidth: value })}
-        min={0}
-        max={10}
-        step={1}
-        className='w-full'
-      />
-    </div>
-
-    {/* Border Color */}
-    <div className='space-y-2'>
-      <Label className='text-slate-300 text-xs'>Border Color</Label>
-      <div className='flex gap-2 items-center'>
-        <input
-          type='color'
-          value={background.borderColor}
-          onChange={(e) => onUpdate({ borderColor: e.target.value })}
-          className='w-10 h-8 rounded cursor-pointer border-0 p-0 overflow-hidden'
-        />
-        <Input
-          value={background.borderColor}
-          onChange={(e) => onUpdate({ borderColor: e.target.value })}
-          className='flex-1 bg-slate-800 border-slate-600 text-white text-xs'
-        />
-      </div>
-    </div>
-
-    {/* Border Radius Slider */}
-    <div className='space-y-2'>
-      <div className='flex justify-between'>
-        <Label className='text-slate-300 text-xs'>Rounded Corners</Label>
-        <span className='text-slate-400 text-xs'>
-          {background.borderRadius}px
-        </span>
-      </div>
-      <Slider
-        value={[background.borderRadius]}
-        onValueChange={([value]) => onUpdate({ borderRadius: value })}
-        min={0}
-        max={100}
         step={1}
         className='w-full'
       />

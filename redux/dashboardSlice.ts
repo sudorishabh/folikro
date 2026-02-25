@@ -4,18 +4,18 @@ export type BackgroundSettings = {
   imageUrl: string;
   opacity: number;
   blur: number;
-  borderWidth: number;
-  borderColor: string;
-  borderRadius: number;
+  pattern: string; // CSS pattern overlay id (e.g. "dots", "grid", "diagonal", etc.) or "" for none
+  patternOpacity: number; // 0-100
+  patternColor: string; // hex color for the pattern
 };
 
 export const defaultBackground: BackgroundSettings = {
   imageUrl: "",
   opacity: 100,
   blur: 0,
-  borderWidth: 0,
-  borderColor: "#3b82f6",
-  borderRadius: 8,
+  pattern: "",
+  patternOpacity: 20,
+  patternColor: "#ffffff",
 };
 
 export type Widget = {
