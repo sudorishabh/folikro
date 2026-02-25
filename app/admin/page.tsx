@@ -19,42 +19,15 @@ import {
 } from "@/redux/dashboardSlice";
 import { RootState } from "@/redux/store";
 import { cn } from "@/lib/utils";
-import { SHAPE_PATTERNS } from "@/components/Sidebar/AppSidebar";
+import {
+  SHAPE_PATTERNS,
+  getPatternSize,
+  getPatternBackgroundPosition,
+} from "@/components/Sidebar/constants";
 
 // Helper: detect if the background value is an actual image URL/data URI
 const isImageUrl = (val: string) =>
   val.startsWith("http") || val.startsWith("data:") || val.startsWith("blob:");
-
-// Helper: get CSS background-size for a pattern
-function getPatternSize(patternId: string): string {
-  switch (patternId) {
-    case "dots":
-      return "20px 20px";
-    case "grid":
-      return "20px 20px";
-    case "diagonal":
-      return "14px 14px";
-    case "crosshatch":
-      return "14px 14px";
-    case "horizontal-lines":
-      return "100% 15px";
-    case "vertical-lines":
-      return "15px 100%";
-    case "checkerboard":
-      return "20px 20px";
-    case "zigzag":
-      return "20px 20px";
-    case "triangles":
-      return "30px 30px";
-    default:
-      return "20px 20px";
-  }
-}
-
-function getPatternBackgroundPosition(patternId: string): string | undefined {
-  if (patternId === "checkerboard") return "0 0, 10px 10px";
-  return undefined;
-}
 
 // Helper: render a pattern overlay given BackgroundSettings
 function renderPatternOverlay(bg: {
