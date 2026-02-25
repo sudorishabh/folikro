@@ -13,7 +13,7 @@ export async function proxy(req: NextRequest) {
   );
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
+  console.log(token);
   if (isAuthRoute) {
     if (token) {
       return NextResponse.redirect(new URL("/admin", req.url));
