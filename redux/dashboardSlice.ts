@@ -7,6 +7,11 @@ export type BackgroundSettings = {
   pattern: string; // CSS pattern overlay id (e.g. "dots", "grid", "diagonal", etc.) or "" for none
   patternOpacity: number; // 0-100
   patternColor: string; // hex color for the pattern
+  shadow: string; // CSS box-shadow value (e.g. "0px 4px 12px rgba(0,0,0,0.3)") or "" for none
+  textContent: string; // Text to display on the widget
+  textColor: string; // hex color for widget text
+  textSize: number; // font size in px
+  transparent: boolean; // If true, widget background is hidden, only text visible
 };
 
 export const defaultBackground: BackgroundSettings = {
@@ -16,6 +21,11 @@ export const defaultBackground: BackgroundSettings = {
   pattern: "",
   patternOpacity: 20,
   patternColor: "#ffffff",
+  shadow: "",
+  textContent: "",
+  textColor: "#000000",
+  textSize: 14,
+  transparent: false,
 };
 
 export type Widget = {

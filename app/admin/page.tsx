@@ -64,9 +64,11 @@ const AdminPage: React.FC = () => {
     setMounted(true);
   }, []);
 
-  const { background: dashboardBackground, widgets } = useSelector(
-    (state: RootState) => state.dashboard,
-  );
+  const {
+    background: dashboardBackground,
+    widgets,
+    selectedWidgetId,
+  } = useSelector((state: RootState) => state.dashboard);
   const { activeSidebar } = useSelector((state: RootState) => state.sidebar);
 
   const dispatch = useDispatch();
@@ -233,7 +235,13 @@ const AdminPage: React.FC = () => {
   };
 
   return (
-    <AdminWrapper
+    <div
+      className='min-h-screen'
+      onClick={() => {
+        dispatch(setActiveSidebar(""));
+        dispatch(selectWidget(null));
+      }}>
+      <AdminWrapper
       buttons={[
         {
           label: "Preview",
@@ -248,7 +256,9 @@ const AdminPage: React.FC = () => {
           Icon: Save,
         },
       ]}>
-      <div className='w-fit mb-1.5 mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className='w-fit mb-1.5 mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
         <HoverExtendBtn
           Icon={Plus}
           label='Add Widget'
@@ -284,8 +294,10 @@ const AdminPage: React.FC = () => {
           "relative border-[3px] border-transparent hover:border-green-600 has-[.grid-stack-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out",
           activeSidebar === "background" && "border-green-600",
         )}
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           dispatch(setActiveSidebar("background"));
+          dispatch(selectWidget(null));
         }}
         style={{
           background: dashboardBackground.imageUrl ? "transparent" : "#e5e7eb",
@@ -334,11 +346,20 @@ const AdminPage: React.FC = () => {
                 <div
                   className={cn(
                     "grid-stack-item-content relative overflow-hidden border-[3px] border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out",
-                    w.background.imageUrl ? "bg-transparent" : "bg-[#ffffff]",
-                    activeSidebar === "widget-settings" && "border-blue-600",
-                  )}>
-                  {/* Widget Background Layer */}
-                  {w.background.imageUrl && (
+                    w.background.transparent
+                      ? "bg-transparent"
+                      : w.background.imageUrl
+                        ? "bg-transparent"
+                        : "bg-[#ffffff]",
+                    activeSidebar === "widget-settings" &&
+                      selectedWidgetId === w.id &&
+                      "border-blue-600",
+                  )}
+                  style={{
+                    boxShadow: w.background.shadow || "none",
+                  }}>
+                  {/* Widget Background Layer — hidden when transparent */}
+                  {!w.background.transparent && w.background.imageUrl && (
                     <div
                       className='absolute inset-0 bg-cover bg-center'
                       style={{
@@ -351,32 +372,34 @@ const AdminPage: React.FC = () => {
                     />
                   )}
 
-                  {w.background.imageUrl && (
+                  {!w.background.transparent && w.background.imageUrl && (
                     <div className='absolute inset-0 bg-black/30' />
                   )}
 
-                  {/* Pattern overlay for widget */}
-                  {renderPatternOverlay(w.background)}
+                  {/* Pattern overlay for widget — hidden when transparent */}
+                  {!w.background.transparent &&
+                    renderPatternOverlay(w.background)}
 
-                  {/* <d iv
-                    className='relative z-10 flex justify-between items-start h-full p-3'
-                    style={{ color: "white" }}>
-                    {w.title && <span className='font-medium'>{w.title}</span>}
-                    <div className='flex gap-1'>
-                      <button
-                        onClick={() => removeWidget(w.id)}
-                        className='p-1.5 hover:bg-red-500/50 transition-colors'
-                        title='Remove Widget'>
-                        ✖
-                      </button>
+                  {/* Widget Text Content */}
+                  {w.background.textContent && (
+                    <div className='relative z-10 flex items-center justify-center h-full w-full p-3'>
+                      <span
+                        className='font-medium whitespace-pre-wrap text-center wrap-break-word'
+                        style={{
+                          color: w.background.textColor || "#000000",
+                          fontSize: `${w.background.textSize || 14}px`,
+                        }}>
+                        {w.background.textContent}
+                      </span>
                     </div>
-                  </d> */}
+                  )}
                 </div>
               </div>
             ))}
         </div>
       </div>
     </AdminWrapper>
+    </div>
   );
 };
 
