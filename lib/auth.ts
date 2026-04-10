@@ -53,20 +53,31 @@ export const authOptions: AuthOptions = {
   ],
 
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
+      const allowedEmail = "rishabhnegi175@gmail.com";
+      const incomingEmail =
+        (user.email ?? (profile as { email?: string } | undefined)?.email)
+          ?.toLowerCase()
+          .trim();
+
+      if (!incomingEmail || incomingEmail !== allowedEmail) {
+        // Returning a URL blocks sign-in and redirects to our login page.
+        return "/auth/login?error=available_soon";
+      }
+
       // For Google sign-in, find or create the user in the database
       if (account?.provider === "google") {
         try {
           const [existingUser] = await db
             .select()
             .from(usersTable)
-            .where(eq(usersTable.email, user.email!))
+            .where(eq(usersTable.email, incomingEmail))
             .limit(1);
 
           if (!existingUser) {
             // Generate a unique username from the email prefix
-            const baseUsername = user
-              .email!.split("@")[0]
+            const baseUsername = incomingEmail
+              .split("@")[0]
               .replace(/[^a-z0-9]/gi, "")
               .toLowerCase();
             let username = baseUsername;
@@ -85,7 +96,7 @@ export const authOptions: AuthOptions = {
             }
 
             await db.insert(usersTable).values({
-              email: user.email!,
+              email: incomingEmail,
               name: user.name ?? "User",
               username,
               avatar: user.image,
@@ -95,25 +106,39 @@ export const authOptions: AuthOptions = {
           return true;
         } catch (error) {
           console.error("Error during Google sign-in:", error);
-          return false;
+          // If the email is allowlisted, don't block sign-in due to a transient DB issue.
+          return true;
         }
       }
 
       return true;
     },
 
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       // On initial sign-in, attach the DB user id
       if (user) {
-        const [dbUser] = await db
-          .select({ id: usersTable.id, username: usersTable.username })
-          .from(usersTable)
-          .where(eq(usersTable.email, user.email!))
-          .limit(1);
+        const email =
+          user.email?.toLowerCase().trim() ??
+          (typeof token.email === "string"
+            ? token.email.toLowerCase().trim()
+            : undefined);
 
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.username = dbUser.username;
+        if (!email) return token;
+
+        try {
+          const [dbUser] = await db
+            .select({ id: usersTable.id, username: usersTable.username })
+            .from(usersTable)
+            .where(eq(usersTable.email, email))
+            .limit(1);
+
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.username = dbUser.username;
+          }
+        } catch (error) {
+          console.error("Error during jwt callback:", error);
+          // Keep token without DB fields if DB is unavailable.
         }
       }
 

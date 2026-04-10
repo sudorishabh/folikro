@@ -45,10 +45,10 @@ import {
 } from "@/components/ui/dialog";
 
 // Sub-components
-import UnsplashPicker from "./UnsplashPicker";
-import GradientShadesPicker from "./GradientShadesPicker";
-import PatternOverlayPicker from "./PatternOverlayPicker";
-import ShadowsBlurPanel from "./ShadowsBlurPanel";
+import UnsplashPicker from "./unsplash-picker";
+import GradientShadesPicker from "./gradient-shades-picker";
+import PatternOverlayPicker from "./pattern-overlay-picker";
+import ShadowsBlurPanel from "./shadows-blur-panel";
 import {
   SHAPE_PATTERNS,
   getPatternSize,
@@ -59,7 +59,7 @@ import {
 export { SHAPE_PATTERNS } from "./constants";
 
 // ──────────────────────────────────────────────
-// Option Row — minimal, clean list-style item
+// Option Row - minimal, clean list-style item
 // ──────────────────────────────────────────────
 function OptionRow({
   icon: Icon,
@@ -582,7 +582,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 />
               </div>
               <p className='text-[10px] text-neutral-600'>
-                When enabled, the widget background is hidden — only text
+                When enabled, the widget background is hidden - only text
                 remains visible
               </p>
             </div>

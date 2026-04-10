@@ -6,7 +6,7 @@ import "./grid-dashboard.css";
 import AdminWrapper from "./_components/AdminWrapper";
 import { Pen, Plus, Save, Trash } from "lucide-react";
 import { DesktopIcon, GlobeIcon } from "@phosphor-icons/react";
-import HoverExtendBtn from "@/components/Buttons/HoverExtendBtn";
+import HoverExtendBtn from "@/components/button/HoverExtendBtn";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveSidebar } from "@/redux/sidebarSlice";
 import {
@@ -23,7 +23,7 @@ import {
   SHAPE_PATTERNS,
   getPatternSize,
   getPatternBackgroundPosition,
-} from "@/components/Sidebar/constants";
+} from "@/components/side-bar/constants";
 
 // Helper: detect if the background value is an actual image URL/data URI
 const isImageUrl = (val: string) =>
@@ -242,163 +242,167 @@ const AdminPage: React.FC = () => {
         dispatch(selectWidget(null));
       }}>
       <AdminWrapper
-      buttons={[
-        {
-          label: "Preview",
-          onClick: () => {},
-          variant: "outline",
-          Icon: GlobeIcon,
-        },
-        {
-          label: "Publish",
-          onClick: () => {},
-          variant: "default",
-          Icon: Save,
-        },
-      ]}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className='w-fit mb-1.5 mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
-        <HoverExtendBtn
-          Icon={Plus}
-          label='Add Widget'
-          onClick={addWidget}
-        />
-        <HoverExtendBtn
-          Icon={DesktopIcon}
-          label='Tablet view'
-          onClick={addWidget}
-        />
-
-        <HoverExtendBtn
-          Icon={Pen}
-          label='Background'
-          onClick={() => {
-            dispatch(setActiveSidebar("background"));
-          }}
-        />
-        {activeSidebar !== "background" && (
+        buttons={[
+          {
+            label: "Preview",
+            onClick: () => {},
+            variant: "outline",
+            Icon: GlobeIcon,
+          },
+          {
+            label: "Publish",
+            onClick: () => {},
+            variant: "default",
+            Icon: Save,
+          },
+        ]}>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className='w-fit mb-1.5 mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
           <HoverExtendBtn
-            Icon={Trash}
-            label='Delete'
-            className='bg-red-200/80 transition-all duration-300'
+            Icon={Plus}
+            label='Add Widget'
+            onClick={addWidget}
+          />
+          <HoverExtendBtn
+            Icon={DesktopIcon}
+            label='Tablet view'
+            onClick={addWidget}
+          />
+
+          <HoverExtendBtn
+            Icon={Pen}
+            label='Background'
             onClick={() => {
               dispatch(setActiveSidebar("background"));
             }}
           />
-        )}
-      </div>
-
-      <div
-        className={cn(
-          "relative border-[3px] border-transparent hover:border-green-600 has-[.grid-stack-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out",
-          activeSidebar === "background" && "border-green-600",
-        )}
-        onClick={(e) => {
-          e.stopPropagation();
-          dispatch(setActiveSidebar("background"));
-          dispatch(selectWidget(null));
-        }}
-        style={{
-          background: dashboardBackground.imageUrl ? "transparent" : "#e5e7eb",
-        }}>
-        {/* Dashboard Background Layer */}
-        {dashboardBackground.imageUrl && (
-          <div
-            className='absolute inset-0 bg-cover bg-center'
-            style={{
-              ...(isImageUrl(dashboardBackground.imageUrl)
-                ? { backgroundImage: `url(${dashboardBackground.imageUrl})` }
-                : { background: dashboardBackground.imageUrl }),
-              opacity: dashboardBackground.opacity / 100,
-              filter: `blur(${dashboardBackground.blur}px)`,
-            }}
-          />
-        )}
-
-        {/* Dark overlay for dashboard */}
-        {dashboardBackground.imageUrl && (
-          <div className='absolute inset-0 bg-black/30' />
-        )}
-
-        {/* Pattern overlay for dashboard */}
-        {renderPatternOverlay(dashboardBackground)}
-
-        {/* Grid Container */}
-        <div
-          className='grid-stack relative z-10'
-          ref={gridRef}>
-          {mounted &&
-            widgets.map((w: Widget) => (
-              <div
-                key={w.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dispatch(selectWidget(w.id));
-                  dispatch(setActiveSidebar("widget-settings"));
-                }}
-                className='grid-stack-item'
-                gs-id={w.id}
-                gs-x={w.x}
-                gs-y={w.y}
-                gs-w={w.w}
-                gs-h={w.h}>
-                <div
-                  className={cn(
-                    "grid-stack-item-content relative overflow-hidden border-[3px] border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out",
-                    w.background.transparent
-                      ? "bg-transparent"
-                      : w.background.imageUrl
-                        ? "bg-transparent"
-                        : "bg-[#ffffff]",
-                    activeSidebar === "widget-settings" &&
-                      selectedWidgetId === w.id &&
-                      "border-blue-600",
-                  )}
-                  style={{
-                    boxShadow: w.background.shadow || "none",
-                  }}>
-                  {/* Widget Background Layer — hidden when transparent */}
-                  {!w.background.transparent && w.background.imageUrl && (
-                    <div
-                      className='absolute inset-0 bg-cover bg-center'
-                      style={{
-                        ...(isImageUrl(w.background.imageUrl)
-                          ? { backgroundImage: `url(${w.background.imageUrl})` }
-                          : { background: w.background.imageUrl }),
-                        opacity: w.background.opacity / 100,
-                        filter: `blur(${w.background.blur}px)`,
-                      }}
-                    />
-                  )}
-
-                  {!w.background.transparent && w.background.imageUrl && (
-                    <div className='absolute inset-0 bg-black/30' />
-                  )}
-
-                  {/* Pattern overlay for widget — hidden when transparent */}
-                  {!w.background.transparent &&
-                    renderPatternOverlay(w.background)}
-
-                  {/* Widget Text Content */}
-                  {w.background.textContent && (
-                    <div className='relative z-10 flex items-center justify-center h-full w-full p-3'>
-                      <span
-                        className='font-medium whitespace-pre-wrap text-center wrap-break-word'
-                        style={{
-                          color: w.background.textColor || "#000000",
-                          fontSize: `${w.background.textSize || 14}px`,
-                        }}>
-                        {w.background.textContent}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+          {activeSidebar !== "background" && (
+            <HoverExtendBtn
+              Icon={Trash}
+              label='Delete'
+              className='bg-red-200/80 transition-all duration-300'
+              onClick={() => {
+                dispatch(setActiveSidebar("background"));
+              }}
+            />
+          )}
         </div>
-      </div>
-    </AdminWrapper>
+
+        <div
+          className={cn(
+            "relative border-[3px] border-transparent hover:border-green-600 has-[.grid-stack-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out",
+            activeSidebar === "background" && "border-green-600",
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            dispatch(setActiveSidebar("background"));
+            dispatch(selectWidget(null));
+          }}
+          style={{
+            background: dashboardBackground.imageUrl
+              ? "transparent"
+              : "#e5e7eb",
+          }}>
+          {/* Dashboard Background Layer */}
+          {dashboardBackground.imageUrl && (
+            <div
+              className='absolute inset-0 bg-cover bg-center'
+              style={{
+                ...(isImageUrl(dashboardBackground.imageUrl)
+                  ? { backgroundImage: `url(${dashboardBackground.imageUrl})` }
+                  : { background: dashboardBackground.imageUrl }),
+                opacity: dashboardBackground.opacity / 100,
+                filter: `blur(${dashboardBackground.blur}px)`,
+              }}
+            />
+          )}
+
+          {/* Dark overlay for dashboard */}
+          {dashboardBackground.imageUrl && (
+            <div className='absolute inset-0 bg-black/30' />
+          )}
+
+          {/* Pattern overlay for dashboard */}
+          {renderPatternOverlay(dashboardBackground)}
+
+          {/* Grid Container */}
+          <div
+            className='grid-stack relative z-10'
+            ref={gridRef}>
+            {mounted &&
+              widgets.map((w: Widget) => (
+                <div
+                  key={w.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dispatch(selectWidget(w.id));
+                    dispatch(setActiveSidebar("widget-settings"));
+                  }}
+                  className='grid-stack-item'
+                  gs-id={w.id}
+                  gs-x={w.x}
+                  gs-y={w.y}
+                  gs-w={w.w}
+                  gs-h={w.h}>
+                  <div
+                    className={cn(
+                      "grid-stack-item-content relative overflow-hidden border-[3px] border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out",
+                      w.background.transparent
+                        ? "bg-transparent"
+                        : w.background.imageUrl
+                          ? "bg-transparent"
+                          : "bg-[#ffffff]",
+                      activeSidebar === "widget-settings" &&
+                        selectedWidgetId === w.id &&
+                        "border-blue-600",
+                    )}
+                    style={{
+                      boxShadow: w.background.shadow || "none",
+                    }}>
+                    {/* Widget Background Layer - hidden when transparent */}
+                    {!w.background.transparent && w.background.imageUrl && (
+                      <div
+                        className='absolute inset-0 bg-cover bg-center'
+                        style={{
+                          ...(isImageUrl(w.background.imageUrl)
+                            ? {
+                                backgroundImage: `url(${w.background.imageUrl})`,
+                              }
+                            : { background: w.background.imageUrl }),
+                          opacity: w.background.opacity / 100,
+                          filter: `blur(${w.background.blur}px)`,
+                        }}
+                      />
+                    )}
+
+                    {!w.background.transparent && w.background.imageUrl && (
+                      <div className='absolute inset-0 bg-black/30' />
+                    )}
+
+                    {/* Pattern overlay for widget - hidden when transparent */}
+                    {!w.background.transparent &&
+                      renderPatternOverlay(w.background)}
+
+                    {/* Widget Text Content */}
+                    {w.background.textContent && (
+                      <div className='relative z-10 flex items-center justify-center h-full w-full p-3'>
+                        <span
+                          className='font-medium whitespace-pre-wrap text-center wrap-break-word'
+                          style={{
+                            color: w.background.textColor || "#000000",
+                            fontSize: `${w.background.textSize || 14}px`,
+                          }}>
+                          {w.background.textContent}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </AdminWrapper>
     </div>
   );
 };

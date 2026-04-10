@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -35,6 +35,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const LoginForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -51,13 +52,20 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
+      if (data.email.trim().toLowerCase() !== "rishabhnegi175@gmail.com") {
+        setError("Sign-in will be available soon.");
+        return;
+      }
+
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
       });
 
-      if (result?.error) {
+      if (result?.url && result.url.includes("error=available_soon")) {
+        setError("Sign-in will be available soon.");
+      } else if (result?.error) {
         setError("Invalid email or password");
       } else {
         router.push("/admin");
@@ -82,6 +90,11 @@ const LoginForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {searchParams.get("error") === "available_soon" && !error && (
+            <div className='bg-destructive/10 text-destructive text-sm p-3 rounded-md border border-destructive/20 mb-4'>
+              Sign-in will be available soon.
+            </div>
+          )}
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}

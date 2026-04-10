@@ -15,6 +15,11 @@ export const authRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
+      const allowedEmail = "rishabhnegi175@gmail.com";
+      if (input.email.trim().toLowerCase() !== allowedEmail) {
+        throw new Error("Registration will be available soon.");
+      }
+
       // Check if user already exists
       const [existing] = await db
         .select({ id: usersTable.id })

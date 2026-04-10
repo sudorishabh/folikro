@@ -81,6 +81,12 @@ const RegisterForm = () => {
   const onSubmit = (data: RegisterFormValues) => {
     setError(null);
     setSuccess(null);
+
+    if (data.email.trim().toLowerCase() !== "rishabhnegi175@gmail.com") {
+      setError("Registration will be available soon.");
+      return;
+    }
+
     registerMutation.mutate(data);
   };
 
