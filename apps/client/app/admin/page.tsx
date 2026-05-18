@@ -1,7 +1,11 @@
 "use client";
-import React, { useEffect, useRef } from "react";
-import { GridStack, GridStackNode } from "gridstack";
-import "gridstack/dist/gridstack.min.css";
+import React from "react";
+import GridLayout, {
+  Layout,
+  noCompactor,
+  useContainerWidth,
+} from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
 import "./grid-dashboard.css";
 import AdminWrapper from "./_components/AdminWrapper";
 import { Pen, Plus, Save, Trash } from "lucide-react";
@@ -55,14 +59,11 @@ function renderPatternOverlay(bg: {
     />
   );
 }
-const AdminPage: React.FC = () => {
-  const [mounted, setMounted] = React.useState(false);
-  const gridRef = useRef<HTMLDivElement | null>(null);
-  const gridInstance = useRef<GridStack | null>(null);
+const COLUMNS = 82;
+const MARGIN = 2;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+const AdminPage: React.FC = () => {
+  const { width, containerRef, mounted } = useContainerWidth();
 
   const {
     background: dashboardBackground,
@@ -72,142 +73,31 @@ const AdminPage: React.FC = () => {
   const { activeSidebar } = useSelector((state: RootState) => state.sidebar);
 
   const dispatch = useDispatch();
-  const widgetsRef = useRef(widgets);
 
-  useEffect(() => {
-    widgetsRef.current = widgets;
-  }, [widgets]);
+  const rowHeight =
+    width > 0 ? (width - MARGIN * (COLUMNS + 1)) / COLUMNS : 0;
 
-  // Initialize GridStack ONCE
-  useEffect(() => {
-    if (!gridRef.current || !mounted) return;
+  const layout: Layout = widgets.map((w: Widget) => ({
+    i: w.id,
+    x: w.x,
+    y: w.y,
+    w: w.w,
+    h: w.h,
+    minW: 2,
+    minH: 2,
+  }));
 
-    const COLUMNS = 82; // Increase this (e.g., 144) if you need even smaller resize increments
-    const MARGIN = 2;
-
-    const grid = GridStack.init(
-      {
-        column: COLUMNS,
-        cellHeight: 20,
-        margin: MARGIN,
-        float: true,
-        resizable: { handles: "e, se, s, sw, w" },
-        // FIX 1: Remove `columnOpts` breakpoints so your grid maintains a high
-        // 96-column resolution on all screen sizes, ensuring fine-grained resizing.
-      },
-      gridRef.current,
-    );
-
-    gridInstance.current = grid;
-
-    const syncDimensions = () => {
-      if (!gridRef.current || !gridInstance.current) return;
-
-      const columns = gridInstance.current.getColumn();
-      const containerWidth = gridRef.current.clientWidth;
-      const cellHeight = containerWidth / columns;
-
-      // FIX 2: Pass as an exact string with "px" appended.
-      // This forces GridStack to respect the floating-point precision
-      // instead of rounding it to an integer, smoothing out vertical resizes.
-      gridInstance.current.cellHeight(`${cellHeight}px`);
-
-      gridRef.current.style.setProperty("--cell-size", `${cellHeight}px`);
-      gridRef.current.style.setProperty("--grid-columns", `${columns}`);
-    };
-
-    // Initial sync
-    syncDimensions();
-
-    const handleResize = () => syncDimensions();
-    window.addEventListener("resize", handleResize);
-
-    // Sync GridStack → React state
-    grid.on("change", (_, items: GridStackNode[]) => {
-      const updatedWidgets = widgetsRef.current.map((w: Widget) => {
-        const updated = items.find((i) => i.id === w.id);
-        return updated
-          ? {
-              ...w,
-              x: updated.x ?? w.x,
-              y: updated.y ?? w.y,
-              w: updated.w ?? w.w,
-              h: updated.h ?? w.h,
-            }
-          : w;
-      });
-      dispatch(setWidgets(updatedWidgets));
+  const handleLayoutChange = (newLayout: Layout) => {
+    const updatedWidgets = widgets.map((w: Widget) => {
+      const item = newLayout.find((l) => l.i === w.id);
+      return item
+        ? { ...w, x: item.x, y: item.y, w: item.w, h: item.h }
+        : w;
     });
+    dispatch(setWidgets(updatedWidgets));
+  };
 
-    // Add min-constraints to all items
-    grid.getGridItems().forEach((el) => {
-      grid.update(el, { minW: 2, minH: 2 });
-    });
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      grid.destroy(false);
-      gridInstance.current = null;
-    };
-  }, [dispatch, mounted]);
-
-  // Initialize GridStack ONCE
-  // useEffect(() => {
-  //   if (!gridRef.current) return;
-
-  //   const initialCellHeight = calculateCellHeight();
-
-  //   const grid = GridStack.init(
-  //     {
-  //       cellHeight: initialCellHeight,
-  //       margin: 8,
-  //       float: true,
-  //       columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
-  //     },
-  //     gridRef.current,
-  //   );
-
-  //   gridInstance.current = grid;
-
-  //   // Update cell height on window resize to maintain 1:1 ratio
-  //   const handleResize = () => {
-  //     if (gridInstance.current) {
-  //       const newCellHeight = calculateCellHeight();
-  //       gridInstance.current.cellHeight(newCellHeight);
-  //     }
-  //   };
-
-  //   window.addEventListener("resize", handleResize);
-
-  //   // Sync GridStack → React state
-  //   grid.on("change", (_, items: GridStackNode[]) => {
-  //     setWidgets((prev) =>
-  //       prev.map((w) => {
-  //         const updated = items.find((i) => i.id === w.id);
-  //         return updated
-  //           ? {
-  //               ...w,
-  //               x: updated.x ?? w.x,
-  //               y: updated.y ?? w.y,
-  //               w: updated.w ?? w.w,
-  //               h: updated.h ?? w.h,
-  //             }
-  //           : w;
-  //       }),
-  //     );
-  //   });
-
-  //   return () => {
-  //     window.removeEventListener("resize", handleResize);
-  //     grid.destroy(false);
-  //     gridInstance.current = null;
-  //   };
-  // }, []);
-
-  // Add widget dynamically
   const addWidget = () => {
-    if (!gridInstance.current) return;
-
     const newWidget: Widget = {
       id: Date.now().toString(),
       x: 0,
@@ -219,13 +109,6 @@ const AdminPage: React.FC = () => {
     };
 
     dispatch(addWidgetAction(newWidget));
-
-    setTimeout(() => {
-      const element = document.querySelector(`[gs-id="${newWidget.id}"]`);
-      if (element && gridInstance.current) {
-        gridInstance.current.makeWidget(element as HTMLElement);
-      }
-    }, 0);
   };
 
   // Remove widget
@@ -290,8 +173,9 @@ const AdminPage: React.FC = () => {
         </div>
 
         <div
+          ref={containerRef}
           className={cn(
-            "relative border-[3px] border-transparent hover:border-green-600 has-[.grid-stack-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out",
+            "relative border-[3px] border-transparent hover:border-green-600 has-[.react-grid-item:hover]:border-transparent min-h-150 p-4 overflow-hidden transition-all duration-200 ease-in-out",
             activeSidebar === "background" && "border-green-600",
           )}
           onClick={(e) => {
@@ -327,11 +211,20 @@ const AdminPage: React.FC = () => {
           {renderPatternOverlay(dashboardBackground)}
 
           {/* Grid Container */}
-          <div
-            className='grid-stack relative z-10'
-            ref={gridRef}>
-            {mounted &&
-              widgets.map((w: Widget) => (
+          {mounted && width > 0 && (
+            <GridLayout
+              className='relative z-10'
+              layout={layout}
+              width={width}
+              gridConfig={{
+                cols: COLUMNS,
+                rowHeight,
+                margin: [MARGIN, MARGIN],
+              }}
+              resizeConfig={{ handles: ["e", "se", "s", "sw", "w"] }}
+              compactor={noCompactor}
+              onLayoutChange={handleLayoutChange}>
+              {widgets.map((w: Widget) => (
                 <div
                   key={w.id}
                   onClick={(e) => {
@@ -339,68 +232,61 @@ const AdminPage: React.FC = () => {
                     dispatch(selectWidget(w.id));
                     dispatch(setActiveSidebar("widget-settings"));
                   }}
-                  className='grid-stack-item'
-                  gs-id={w.id}
-                  gs-x={w.x}
-                  gs-y={w.y}
-                  gs-w={w.w}
-                  gs-h={w.h}>
-                  <div
-                    className={cn(
-                      "grid-stack-item-content relative overflow-hidden border-[3px] border-transparent hover:border-gray-400 has-[.grid-stack-item:hover]:border-transparent transition-all duration-200 ease-in-out",
-                      w.background.transparent
+                  className={cn(
+                    "relative overflow-hidden border-[3px] border-transparent hover:border-gray-400 has-[.react-grid-item:hover]:border-transparent transition-all duration-200 ease-in-out",
+                    w.background.transparent
+                      ? "bg-transparent"
+                      : w.background.imageUrl
                         ? "bg-transparent"
-                        : w.background.imageUrl
-                          ? "bg-transparent"
-                          : "bg-[#ffffff]",
-                      activeSidebar === "widget-settings" &&
-                        selectedWidgetId === w.id &&
-                        "border-blue-600",
-                    )}
-                    style={{
-                      boxShadow: w.background.shadow || "none",
-                    }}>
-                    {/* Widget Background Layer - hidden when transparent */}
-                    {!w.background.transparent && w.background.imageUrl && (
-                      <div
-                        className='absolute inset-0 bg-cover bg-center'
+                        : "bg-[#ffffff]",
+                    activeSidebar === "widget-settings" &&
+                      selectedWidgetId === w.id &&
+                      "border-blue-600",
+                  )}
+                  style={{
+                    boxShadow: w.background.shadow || "none",
+                  }}>
+                  {/* Widget Background Layer - hidden when transparent */}
+                  {!w.background.transparent && w.background.imageUrl && (
+                    <div
+                      className='absolute inset-0 bg-cover bg-center'
+                      style={{
+                        ...(isImageUrl(w.background.imageUrl)
+                          ? {
+                              backgroundImage: `url(${w.background.imageUrl})`,
+                            }
+                          : { background: w.background.imageUrl }),
+                        opacity: w.background.opacity / 100,
+                        filter: `blur(${w.background.blur}px)`,
+                      }}
+                    />
+                  )}
+
+                  {!w.background.transparent && w.background.imageUrl && (
+                    <div className='absolute inset-0 bg-black/30' />
+                  )}
+
+                  {/* Pattern overlay for widget - hidden when transparent */}
+                  {!w.background.transparent &&
+                    renderPatternOverlay(w.background)}
+
+                  {/* Widget Text Content */}
+                  {w.background.textContent && (
+                    <div className='relative z-10 flex items-center justify-center h-full w-full p-3'>
+                      <span
+                        className='font-medium whitespace-pre-wrap text-center wrap-break-word'
                         style={{
-                          ...(isImageUrl(w.background.imageUrl)
-                            ? {
-                                backgroundImage: `url(${w.background.imageUrl})`,
-                              }
-                            : { background: w.background.imageUrl }),
-                          opacity: w.background.opacity / 100,
-                          filter: `blur(${w.background.blur}px)`,
-                        }}
-                      />
-                    )}
-
-                    {!w.background.transparent && w.background.imageUrl && (
-                      <div className='absolute inset-0 bg-black/30' />
-                    )}
-
-                    {/* Pattern overlay for widget - hidden when transparent */}
-                    {!w.background.transparent &&
-                      renderPatternOverlay(w.background)}
-
-                    {/* Widget Text Content */}
-                    {w.background.textContent && (
-                      <div className='relative z-10 flex items-center justify-center h-full w-full p-3'>
-                        <span
-                          className='font-medium whitespace-pre-wrap text-center wrap-break-word'
-                          style={{
-                            color: w.background.textColor || "#000000",
-                            fontSize: `${w.background.textSize || 14}px`,
-                          }}>
-                          {w.background.textContent}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                          color: w.background.textColor || "#000000",
+                          fontSize: `${w.background.textSize || 14}px`,
+                        }}>
+                        {w.background.textContent}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
-          </div>
+            </GridLayout>
+          )}
         </div>
       </AdminWrapper>
     </div>
