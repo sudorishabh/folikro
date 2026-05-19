@@ -1,61 +1,72 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { PieChart, Play, Redo, Settings, Share2, Undo } from "lucide-react";
+import {
+  PieChart,
+  Play,
+  Redo,
+  Save,
+  Settings,
+  Share2,
+  Undo,
+} from "lucide-react";
+import Btn from "../button/btn";
+import { GrayIconStyle } from "../shared/style";
+import { cn } from "@/lib/utils";
 
 const RightActionBar = () => {
   return (
-    <div className='flex items-center'>
-      <Button
-        variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
-        aria-label='Undo'>
-        <Undo className='size-6' />
-      </Button>
-      <Button
-        variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
-        aria-label='Redo'>
-        <Redo className='size-6' />
-      </Button>
+    <div className='flex items-center justify-end gap-4'>
+      <div className='flex items-center gap-2'>
+        <Btn
+          variant='ghost'
+          className='p-0!'
+          aria-label='Undo'>
+          <Undo className={GrayIconStyle} />
+        </Btn>
+        <Btn
+          variant='ghost'
+          className='p-0!'
+          aria-label='Redo'>
+          <Redo className={GrayIconStyle} />
+        </Btn>
 
-      <span className='h-8 w-px bg-gray-400 mx-2'></span>
+        <span className='h-8 w-px bg-gray-400 mx-2'></span>
 
-      <Button
-        variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
-        aria-label='Settings'>
-        <Settings className='size-6' />
-      </Button>
-      <Button
-        variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
-        aria-label='Play'>
-        <Play className='size-6' />
-      </Button>
-      <Button
-        variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
-        aria-label='Share'>
-        <Share2 className='size-6' />
-      </Button>
-      <Button
-        variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
-        aria-label='Pie Chart'>
-        <PieChart className='size-6' />
-      </Button>
+        <Btn
+          variant='ghost'
+          className='p-0!'
+          aria-label='Settings'>
+          <Settings className={GrayIconStyle} />
+        </Btn>
+        <Btn
+          variant='ghost'
+          className='p-0!'
+          aria-label='Play'>
+          <Play className={GrayIconStyle} />
+        </Btn>
+        <Btn
+          variant='ghost'
+          className='p-0!'
+          aria-label='Share'>
+          <Share2 className={GrayIconStyle} />
+        </Btn>
+        <Btn
+          variant='ghost'
+          className='p-0!'
+          aria-label='Pie Chart'>
+          <PieChart
+            //   strokeWidth={1.5}
+            className={GrayIconStyle}
+          />
+        </Btn>
+      </div>
 
-      <Button
+      <Btn
         variant='default'
-        className='text-xs h-8 px-4!'>
+        hoverLabel='Publish'>
+        {/* <Save className={cn(GrayIconStyle, "size-4 text-white stroke-2")} /> */}
         Publish
-      </Button>
+      </Btn>
     </div>
   );
 };

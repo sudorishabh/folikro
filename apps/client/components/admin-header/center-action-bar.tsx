@@ -1,31 +1,29 @@
 import React from "react";
-import { Button } from "../ui/button";
 import { CirclePlus, Smartphone, WandSparkles } from "lucide-react";
+import Btn from "../button/btn";
+import { GrayIconStyle } from "../shared/style";
 
 const CenterActionBar = () => {
   return (
-    <div className='flex items-center'>
-      <Button
+    <div className='flex items-center gap-2'>
+      <Btn
         variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
+        className='p-0!'
         aria-label='Search'>
-        <Smartphone className='size-6' />
-      </Button>
-      <Button
+        <Smartphone className={GrayIconStyle} />
+      </Btn>
+      <Btn
         variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
+        className='p-0!'
         aria-label='Magic'>
-        <WandSparkles className='size-6' />
-      </Button>
-      <Button
+        <WandSparkles className={GrayIconStyle} />
+      </Btn>
+      <Btn
         variant='ghost'
-        size='icon'
-        className='size-8 rounded-lg'
+        className='p-0!'
         aria-label='Add'>
-        <CirclePlus className='size-6' />
-      </Button>
+        <CirclePlus className={GrayIconStyle} />
+      </Btn>
     </div>
   );
 };

@@ -139,7 +139,7 @@ const AdminPage: React.FC = () => {
             Icon: Save,
           },
         ]}>
-        <div
+        {/* <div
           onClick={(e) => e.stopPropagation()}
           className='w-fit mb-1.5 mx-auto flex items-center justify-center gap-2 transition-all duration-300'>
           <HoverExtendBtn
@@ -170,7 +170,7 @@ const AdminPage: React.FC = () => {
               }}
             />
           )}
-        </div>
+        </div> */}
 
         <div
           ref={containerRef}

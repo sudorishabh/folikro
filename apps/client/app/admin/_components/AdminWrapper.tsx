@@ -20,8 +20,8 @@ interface Props {
 }
 const AdminWrapper = ({ children, buttons }: Props) => {
   return (
-    <div className='p-4'>
-      <div className='flex justify-between items-center'>
+    <div className='p-'>
+      {/* <div className='flex justify-between items-center'>
         <h1 className='text-2xl tracking-tight font-semibold'>
           Portfolio Settings
         </h1>
@@ -36,9 +36,9 @@ const AdminWrapper = ({ children, buttons }: Props) => {
               {button.label}
             </Button>
           ))}
-        </div>
+        </div> */}
 
-        {/* <Popover>
+      {/* <Popover>
           <PopoverTrigger asChild>
             <Button
               variant='outline'
@@ -60,7 +60,7 @@ const AdminWrapper = ({ children, buttons }: Props) => {
             />
           </PopoverContent>
         </Popover> */}
-      </div>
+      {/* </div> */}
       {children}
     </div>
   );

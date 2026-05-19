@@ -1,14 +1,23 @@
 import React from "react";
-import { Button as CustomButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
-interface Props extends React.ComponentProps<typeof CustomButton> {
-  label?: string;
+interface Props extends React.ComponentProps<typeof Button> {
+  children?: React.ReactNode;
   variant?: "default" | "outline" | "ghost" | "destructive";
   className?: string;
   onClick?: () => void;
+  hoverLabel?: string;
 }
 
-const Btn = ({ label, variant, size, className, onClick, ...props }: Props) => {
+const Btn = ({
+  children,
+  variant,
+  size,
+  className,
+  onClick,
+  hoverLabel,
+  ...props
+}: Props) => {
   const buttonVariants = {
     default: "h-8 bg-gray-800 text-white hover:bg-gray-900",
     outline:
@@ -19,13 +28,14 @@ const Btn = ({ label, variant, size, className, onClick, ...props }: Props) => {
   const variantStyle = buttonVariants[variant || "default"];
 
   return (
-    <CustomButton
+    <Button
+      aria-label={hoverLabel}
       size={size}
-      className={`cursor-pointer text-xs ${variantStyle} ${className}`}
+      className={`cursor-pointer rounded-lg text-sm px-6 gap-1.5 transition-all duration-300 ${variantStyle} ${className}`}
       onClick={onClick}
       {...props}>
-      {label}
-    </CustomButton>
+      {children && children}
+    </Button>
   );
 };
 

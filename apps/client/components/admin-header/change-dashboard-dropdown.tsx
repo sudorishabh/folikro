@@ -14,15 +14,14 @@ import Btn from "../button/btn";
 import { GrayIconStyle } from "../shared/style";
 import { cn } from "@/lib/utils";
 
-const UserDropdown = () => {
+const ChangeDashboardDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Btn
           variant='ghost'
-          className='h-10 rounded-lg flex items-center gap-1 focus-visible:ring-0 focus-visible:ring-offset-0 p-0!'
-          hoverLabel='User'>
-          <Avatar className='size-9 rounded-lg'>
+          className='h-10 rounded-lg flex items-center gap-1 focus-visible:ring-0 focus-visible:ring-offset-0 p-0!'>
+          {/* <Avatar className='size-10 rounded-lg'>
             <AvatarImage
               src='https://100k-faces.vercel.app/api/random-image'
               alt='User'
@@ -30,7 +29,8 @@ const UserDropdown = () => {
             <AvatarFallback>
               <UserIcon className={GrayIconStyle} />
             </AvatarFallback>
-          </Avatar>
+          </Avatar> */}
+          Portfolio/ <span className='text-gray-600'>personal</span>
           <ChevronDownIcon className={cn(GrayIconStyle, "size-5")} />
         </Btn>
       </DropdownMenuTrigger>
@@ -50,4 +50,4 @@ const UserDropdown = () => {
   );
 };
 
-export default UserDropdown;
+export default ChangeDashboardDropdown;
