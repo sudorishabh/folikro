@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
+import Btn from "../button/btn";
 
 const UserDropdown = () => {
   return (
@@ -32,6 +33,7 @@ const UserDropdown = () => {
             </AvatarFallback>
           </Avatar>
           <ChevronDownIcon className='size-4' />
+          <Btn label='Create New' />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

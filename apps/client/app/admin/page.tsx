@@ -10,7 +10,7 @@ import GridLayout, {
 import AdminWrapper from "./_components/AdminWrapper";
 import { Pen, Plus, Save, Trash } from "lucide-react";
 import { DesktopIcon, GlobeIcon } from "@phosphor-icons/react";
-import HoverExtendBtn from "@/components/button/HoverExtendBtn";
+import HoverExtendBtn from "@/components/button/hover-extend-btn";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveSidebar } from "@/redux/sidebarSlice";
 import {
