@@ -21,7 +21,7 @@ const UserDropdown = () => {
         <Btn
           variant='ghost'
           className='h-10 rounded-lg flex items-center gap-1 focus-visible:ring-0 focus-visible:ring-offset-0 p-0!'
-          hoverLabel='User'>
+          aria-label='User'>
           <Avatar className='size-9 rounded-lg'>
             <AvatarImage
               src='https://100k-faces.vercel.app/api/random-image'

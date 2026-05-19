@@ -1,5 +1,12 @@
+"use client";
+
 import React from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props extends React.ComponentProps<typeof Button> {
   children?: React.ReactNode;
@@ -8,6 +15,8 @@ interface Props extends React.ComponentProps<typeof Button> {
   onClick?: () => void;
   hoverLabel?: string;
 }
+
+const HOVER_LABEL_DELAY_MS = 800;
 
 const Btn = ({
   children,
@@ -27,7 +36,7 @@ const Btn = ({
   };
   const variantStyle = buttonVariants[variant || "default"];
 
-  return (
+  const button = (
     <Button
       aria-label={hoverLabel}
       size={size}
@@ -36,6 +45,17 @@ const Btn = ({
       {...props}>
       {children && children}
     </Button>
+  );
+
+  if (!hoverLabel) {
+    return button;
+  }
+
+  return (
+    <Tooltip delayDuration={HOVER_LABEL_DELAY_MS}>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent sideOffset={4}>{hoverLabel}</TooltipContent>
+    </Tooltip>
   );
 };
 
