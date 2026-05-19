@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/side-bar/app-sidebar";
+// import { AppSidebar } from "@/components/side-bar/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,6 +14,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import GridDashboard from "./GridDashboard";
+import AdminHeader from "@/components/admin-header/admin-header";
 
 interface Props {
   children: React.ReactNode;
@@ -21,8 +22,9 @@ interface Props {
 const SidebarProvider = ({ children }: Props) => {
   return (
     <SidebarProviderUI className='p-0 rounded-none'>
-      <AppSidebar />
+      {/* <AppSidebar /> */}
       <SidebarInset className='rounded-none! m-0! p-0!'>
+        <AdminHeader />
         {/* <header className='flex h-16 shrink-0 items-center gap-2'>
           <div className='flex items-center gap-2 px-4'>
             <SidebarTrigger className='-ml-1' />

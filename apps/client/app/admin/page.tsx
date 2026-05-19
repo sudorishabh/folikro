@@ -5,8 +5,8 @@ import GridLayout, {
   noCompactor,
   useContainerWidth,
 } from "react-grid-layout";
-import "react-grid-layout/css/styles.css";
-import "./grid-dashboard.css";
+// import "react-grid-layout/css/styles.css";
+// import "./grid-dashboard.css";
 import AdminWrapper from "./_components/AdminWrapper";
 import { Pen, Plus, Save, Trash } from "lucide-react";
 import { DesktopIcon, GlobeIcon } from "@phosphor-icons/react";
@@ -23,11 +23,11 @@ import {
 } from "@/redux/dashboardSlice";
 import { RootState } from "@/redux/store";
 import { cn } from "@/lib/utils";
-import {
-  SHAPE_PATTERNS,
-  getPatternSize,
-  getPatternBackgroundPosition,
-} from "@/components/side-bar/constants";
+// import {
+//   SHAPE_PATTERNS,
+//   getPatternSize,
+//   getPatternBackgroundPosition,
+// } from "@/components/side-bar/constants";
 
 // Helper: detect if the background value is an actual image URL/data URI
 const isImageUrl = (val: string) =>
@@ -40,8 +40,8 @@ function renderPatternOverlay(bg: {
   patternOpacity: number;
 }) {
   if (!bg.pattern) return null;
-  const patternDef = SHAPE_PATTERNS.find((p) => p.id === bg.pattern);
-  if (!patternDef) return null;
+  // const patternDef = SHAPE_PATTERNS.find((p) => p.id === bg.pattern);
+  // if (!patternDef) return null;
   const hex = bg.patternColor;
   const alpha = bg.patternOpacity / 100;
   const r = parseInt(hex.slice(1, 3), 16);
@@ -49,14 +49,17 @@ function renderPatternOverlay(bg: {
   const b = parseInt(hex.slice(5, 7), 16);
   const rgba = `rgba(${r},${g},${b},${alpha})`;
   return (
-    <div
-      className='absolute inset-0'
-      style={{
-        backgroundImage: patternDef.css(rgba, alpha),
-        backgroundSize: getPatternSize(patternDef.id),
-        backgroundPosition: getPatternBackgroundPosition(patternDef.id),
-      }}
-    />
+    // <div
+    //   className='absolute inset-0'
+    //   style={{
+    //     backgroundImage: patternDef.css(rgba, alpha),
+    //     backgroundSize: getPatternSize(patternDef.id),
+    //     backgroundPosition: getPatternBackgroundPosition(patternDef.id),
+    //   }}
+    // />
+    <div>
+      <p>Pattern Overlay</p>
+    </div>
   );
 }
 const COLUMNS = 82;
@@ -74,8 +77,7 @@ const AdminPage: React.FC = () => {
 
   const dispatch = useDispatch();
 
-  const rowHeight =
-    width > 0 ? (width - MARGIN * (COLUMNS + 1)) / COLUMNS : 0;
+  const rowHeight = width > 0 ? (width - MARGIN * (COLUMNS + 1)) / COLUMNS : 0;
 
   const layout: Layout = widgets.map((w: Widget) => ({
     i: w.id,
@@ -90,9 +92,7 @@ const AdminPage: React.FC = () => {
   const handleLayoutChange = (newLayout: Layout) => {
     const updatedWidgets = widgets.map((w: Widget) => {
       const item = newLayout.find((l) => l.i === w.id);
-      return item
-        ? { ...w, x: item.x, y: item.y, w: item.w, h: item.h }
-        : w;
+      return item ? { ...w, x: item.x, y: item.y, w: item.w, h: item.h } : w;
     });
     dispatch(setWidgets(updatedWidgets));
   };
